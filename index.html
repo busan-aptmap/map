@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>전국·부산 청약 및 분양 지도</title>
+    <title>전국·부산 청약 지도</title>
     <style>
         html, body {
             margin: 0;
@@ -75,7 +75,6 @@
             color: #ffffff;
             margin-bottom: 4px;
         }
-        .badge-rec { background: #e11d48; }
         .badge-apt { background: #7c3aed; }
         .title { font-weight: bold; font-size: 13px; color: #0f172a; margin-bottom: 3px; }
         .desc { font-size: 11px; color: #475569; line-height: 1.4; }
@@ -120,17 +119,7 @@
         }
     }
 
-    // 기본 추천 현장
-    var fixedSites = [
-        { name: "힐스테이트 연산", badge: "★ 선착순 추천", lat: 35.1843, lng: 129.0835, desc: "선착순 동호지정 계약 중" },
-        { name: "한화포레나 부산덕천", badge: "★ 선착순 추천", lat: 35.2096, lng: 129.0102, desc: "잔여세대 선착순 상담" }
-    ];
-
-    fixedSites.forEach(function(site) {
-        renderMarker(new kakao.maps.LatLng(site.lat, site.lng), site.badge, "badge-rec", site.name, site.desc);
-    });
-
-    // 공공데이터포털 청약홈 API 직접 호출 (프록시 제거하여 병목 및 에러 차단)
+    // 공공데이터포털 청약홈 API 실시간 호출
     var serviceKey = "935de5c23598a914dd97149a0b92614db7f4de28d991d658d58dfaca03bad3a7";
     var directUrl = "https://api.odcloud.kr/api/ApplyhomeInfoDetailSvc/v1/getAPTLttotPblancDetail?page=1&perPage=50&serviceKey=" + encodeURIComponent(serviceKey);
 
@@ -151,12 +140,11 @@
 
                 if (!addr) return;
 
-                // 주소 변환 간격을 주어 누락 없이 순차 처리
                 setTimeout(function() {
                     geocoder.addressSearch(addr, function(result, status) {
                         if (status === kakao.maps.services.Status.OK) {
                             var coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-                            renderMarker(coords, "실시간 청약", "badge-apt", name, period);
+                            renderMarker(coords, "실시간 청약", name, period);
                             count++;
                             document.getElementById('status').innerText = "마커 " + count + "곳 표시 완료";
                         }
@@ -169,7 +157,7 @@
             document.getElementById('status').innerText = "API 연결 대기 중";
         });
 
-    function renderMarker(position, badgeText, badgeClass, title, desc) {
+    function renderMarker(position, badgeText, title, desc) {
         new kakao.maps.Marker({
             map: map,
             position: position
@@ -177,7 +165,7 @@
 
         var content = `
             <div class="info-box">
-                <span class="badge ${badgeClass}">${badgeText}</span>
+                <span class="badge badge-apt">${badgeText}</span>
                 <div class="title">${title}</div>
                 <div class="desc">${desc}</div>
             </div>
