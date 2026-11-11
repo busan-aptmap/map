@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>전국·부산 청약 지도</title>
+    <title>전국·부산 청약 및 선착순 분양 지도</title>
     <style>
         html, body {
             margin: 0;
@@ -64,14 +64,13 @@
             box-shadow: 0 4px 14px rgba(0,0,0,0.22);
             padding: 10px 14px;
             border: 1px solid #cbd5e1;
-            min-width: 175px;
+            min-width: 180px;
             text-align: left;
             cursor: pointer;
             transition: transform 0.15s ease;
         }
         .info-box:hover {
             transform: translateY(-2px);
-            border-color: #7c3aed;
         }
         .badge {
             display: inline-block;
@@ -82,7 +81,9 @@
             color: #ffffff;
             margin-bottom: 4px;
         }
-        .badge-apt { background: #7c3aed; }
+        .badge-apt { background: #7c3aed; }    /* 청약 진행/예정 */
+        .badge-fcfs { background: #ea580c; }   /* 정당계약 후 선착순 전환 */
+
         .title { font-weight: bold; font-size: 13px; color: #0f172a; margin-bottom: 3px; }
         .desc { font-size: 11px; color: #475569; line-height: 1.4; }
         .click-hint { font-size: 10px; color: #2563eb; margin-top: 4px; font-weight: bold; }
@@ -105,7 +106,7 @@
         .modal-content {
             background: #ffffff;
             border-radius: 12px;
-            max-width: 460px;
+            max-width: 470px;
             width: 100%;
             padding: 22px;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
@@ -130,12 +131,12 @@
         .modal-close:hover { color: #0f172a; }
         .modal-title { font-size: 17px; font-weight: bold; color: #0f172a; margin-bottom: 12px; padding-right: 24px; }
         .modal-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
-        .modal-table th { text-align: left; color: #64748b; padding: 6px 0; width: 85px; font-weight: 600; vertical-align: top; }
+        .modal-table th { text-align: left; color: #64748b; padding: 6px 0; width: 95px; font-weight: 600; vertical-align: top; }
         .modal-table td { color: #1e293b; padding: 6px 0; line-height: 1.5; }
         .modal-btn-link {
             display: block;
             margin-top: 16px;
-            background: #7c3aed;
+            background: #2563eb;
             color: #ffffff;
             text-align: center;
             padding: 10px 0;
@@ -144,7 +145,7 @@
             font-weight: bold;
             font-size: 13px;
         }
-        .modal-btn-link:hover { background: #6d28d9; }
+        .modal-btn-link:hover { background: #1d4ed8; }
     </style>
     <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=42553244187f3d43b01f98a4468460dc&libraries=services"></script>
 </head>
@@ -159,7 +160,7 @@
 <div id="status" class="status-badge">청약 데이터 연결 중...</div>
 <div id="map"></div>
 
-<!-- 상세 모달 레이어 -->
+<!-- 상세 모달 창 -->
 <div id="modalOverlay" class="modal-overlay" onclick="closeModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="closeModal()">&times;</button>
@@ -194,8 +195,17 @@
         }
     }
 
-    // 모달 제어 함수
-    function openModal(apt) {
+    // 오늘 날짜 문자열 계산 (YYYY-MM-DD 형식)
+    function getTodayString() {
+        var now = new Date();
+        var y = now.getFullYear();
+        var m = String(now.getMonth() + 1).padStart(2, '0');
+        var d = String(now.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+    var todayStr = getTodayString();
+
+    function openModal(apt, isFcfs) {
         var modalOverlay = document.getElementById('modalOverlay');
         var modalBody = document.getElementById('modalBody');
 
@@ -205,16 +215,24 @@
         var rceptStart = apt.RCEPT_BGNDE || "-";
         var rceptEnd = apt.RCEPT_ENDDE || "-";
         var winDate = apt.PRZWNER_PRESN_DATE || "-";
+        var contractStart = apt.CNTRCT_CNCLS_BGNDE || "-";
+        var contractEnd = apt.CNTRCT_CNCLS_ENDDE || "-";
         var construct = apt.BSNS_MBY_NM || apt.CNSTRCT_ENTRPS_NM || "-";
         var url = apt.PBLANC_URL || "";
 
+        var statusBadge = isFcfs 
+            ? `<span class="badge badge-fcfs">정당계약 종료 (선착순 진행/예정)</span>`
+            : `<span class="badge badge-apt">실시간 청약 일정 진행중</span>`;
+
         var html = `
+            <div style="margin-bottom: 6px;">${statusBadge}</div>
             <div class="modal-title">${name}</div>
             <table class="modal-table">
                 <tr><th>공급위치</th><td>${addr}</td></tr>
                 <tr><th>공급규모</th><td>${scale}</td></tr>
                 <tr><th>청약접수</th><td>${rceptStart} ~ ${rceptEnd}</td></tr>
                 <tr><th>당첨자발표</th><td>${winDate}</td></tr>
+                <tr><th>정당계약일</th><td><strong>${contractStart} ~ ${contractEnd}</strong></td></tr>
                 <tr><th>시공/시행사</th><td>${construct}</td></tr>
             </table>
         `;
@@ -248,15 +266,27 @@
             items.forEach(function(apt, idx) {
                 var name = apt.HOUSE_NM || "아파트명 미제공";
                 var addr = apt.HSSPLY_ADRES;
-                var period = "접수: " + (apt.RCEPT_BGNDE || "-") + " ~ " + (apt.RCEPT_ENDDE || "-");
+                var contractEnd = apt.CNTRCT_CNCLS_ENDDE || "";
 
                 if (!addr) return;
+
+                // 정당계약 종료일 이후인지 자동 판별
+                var isFcfs = false;
+                if (contractEnd && contractEnd < todayStr) {
+                    isFcfs = true;
+                }
+
+                var badgeText = isFcfs ? "선착순 계약·상담" : "실시간 청약";
+                var badgeClass = isFcfs ? "badge-fcfs" : "badge-apt";
+                var descText = isFcfs 
+                    ? "정당계약 마감 (" + contractEnd + ")" 
+                    : "접수: " + (apt.RCEPT_BGNDE || "-") + " ~ " + (apt.RCEPT_ENDDE || "-");
 
                 setTimeout(function() {
                     geocoder.addressSearch(addr, function(result, status) {
                         if (status === kakao.maps.services.Status.OK) {
                             var coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-                            renderClickableMarker(coords, "실시간 청약", name, period, apt);
+                            renderClickableMarker(coords, badgeText, badgeClass, name, descText, apt, isFcfs);
                             count++;
                             document.getElementById('status').innerText = "마커 " + count + "곳 표시 완료";
                         }
@@ -269,8 +299,7 @@
             document.getElementById('status').innerText = "API 연결 대기 중";
         });
 
-    // 클릭 가능한 마커 및 오버레이 렌더링
-    function renderClickableMarker(position, badgeText, title, desc, aptData) {
+    function renderClickableMarker(position, badgeText, badgeClass, title, desc, aptData, isFcfs) {
         var marker = new kakao.maps.Marker({
             map: map,
             position: position
@@ -279,18 +308,17 @@
         var content = document.createElement('div');
         content.className = 'info-box';
         content.innerHTML = `
-            <span class="badge badge-apt">${badgeText}</span>
+            <span class="badge ${badgeClass}">${badgeText}</span>
             <div class="title">${title}</div>
             <div class="desc">${desc}</div>
             <div class="click-hint">클릭 시 상세정보 보기 👆</div>
         `;
 
-        // 말풍선 및 마커 클릭 시 모달 오픈
         content.onclick = function() {
-            openModal(aptData);
+            openModal(aptData, isFcfs);
         };
         kakao.maps.event.addListener(marker, 'click', function() {
-            openModal(aptData);
+            openModal(aptData, isFcfs);
         });
 
         new kakao.maps.CustomOverlay({
