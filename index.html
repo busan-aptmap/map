@@ -20,10 +20,11 @@
         .info-box {
             background: #ffffff;
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
             padding: 10px 14px;
             border: 1px solid #cbd5e1;
             min-width: 170px;
+            text-align: left;
         }
         .badge {
             display: inline-block;
@@ -39,7 +40,7 @@
         .title { font-weight: bold; font-size: 13px; color: #0f172a; margin-bottom: 3px; }
         .desc { font-size: 11px; color: #475569; line-height: 1.4; }
     </style>
-    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=42553244187f3d43b01f98a4468460dc&libraries=services"></script>
+    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=42553244187f3d43b01f98a4468460dc"></script>
 </head>
 <body>
 
@@ -48,51 +49,56 @@
 <script>
     var mapContainer = document.getElementById('map');
     var mapOption = {
-        center: new kakao.maps.LatLng(35.1795543, 129.0756416),
+        center: new kakao.maps.LatLng(35.195, 129.04), // 연산동과 덕천동이 한눈에 들어오는 중심 좌표
         level: 8
     };
     var map = new kakao.maps.Map(mapContainer, mapOption);
-    var geocoder = new kakao.maps.services.Geocoder();
 
+    // 정확한 위도, 경도 좌표를 직접 지정하여 지연 없이 즉시 출력
     var sites = [
         {
             name: "힐스테이트 연산",
             type: "RECOMMEND",
-            address: "부산광역시 연제구 연산동 1990",
+            lat: 35.1843,
+            lng: 129.0835,
             benefit: "선착순 동호지정 계약 중"
         },
         {
             name: "한화포레나 부산덕천",
             type: "GENERAL",
-            address: "부산광역시 북구 덕천동 359-1",
+            lat: 35.2096,
+            lng: 129.0102,
             benefit: "분양 정보 안내"
         }
     ];
 
     sites.forEach(function(site) {
-        geocoder.addressSearch(site.address, function(result, status) {
-            if (status === kakao.maps.services.Status.OK) {
-                var coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-                new kakao.maps.Marker({ map: map, position: coords });
+        var coords = new kakao.maps.LatLng(site.lat, site.lng);
 
-                var isRec = site.type === "RECOMMEND";
-                var badgeClass = isRec ? "badge-rec" : "badge-gen";
-                var badgeText = isRec ? "★ 선착순 추천" : "분양 안내";
+        // 마커 생성
+        var marker = new kakao.maps.Marker({
+            map: map,
+            position: coords
+        });
 
-                var content = `
-                    <div class="info-box">
-                        <span class="badge ${badgeClass}">${badgeText}</span>
-                        <div class="title">${site.name}</div>
-                        <div class="desc">${site.benefit}</div>
-                    </div>
-                `;
+        // 커스텀 오버레이(상세 말풍선) 생성
+        var isRec = site.type === "RECOMMEND";
+        var badgeClass = isRec ? "badge-rec" : "badge-gen";
+        var badgeText = isRec ? "★ 선착순 추천" : "분양 안내";
 
-                new kakao.maps.CustomOverlay({
-                    position: coords,
-                    content: content,
-                    yAnchor: 1.3
-                }).setMap(map);
-            }
+        var content = `
+            <div class="info-box">
+                <span class="badge ${badgeClass}">${badgeText}</span>
+                <div class="title">${site.name}</div>
+                <div class="desc">${site.benefit}</div>
+            </div>
+        `;
+
+        new kakao.maps.CustomOverlay({
+            map: map,
+            position: coords,
+            content: content,
+            yAnchor: 1.3
         });
     });
 </script>
