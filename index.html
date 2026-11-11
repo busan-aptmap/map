@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>부산 청약·분양 지도</title>
+    <title>전국·부산 청약 및 분양 지도</title>
     <style>
         html, body {
             margin: 0;
@@ -17,13 +17,47 @@
             width: 100%;
             height: 100vh;
         }
+        /* 상단 지역 전환 컨트롤러 */
+        .region-controls {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            z-index: 100;
+            display: flex;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 6px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+            border: 1px solid #cbd5e1;
+        }
+        .btn-region {
+            border: none;
+            background: #f1f5f9;
+            color: #334155;
+            padding: 7px 14px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-region:hover {
+            background: #e2e8f0;
+        }
+        .btn-region.active {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        /* 마커 인포박스 스타일 */
         .info-box {
             background: #ffffff;
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.22);
             padding: 10px 14px;
             border: 1px solid #cbd5e1;
-            min-width: 180px;
+            min-width: 175px;
             text-align: left;
         }
         .badge {
@@ -35,110 +69,119 @@
             color: #ffffff;
             margin-bottom: 4px;
         }
-        .badge-apt { background: #7c3aed; } /* 청약 신규 */
-        .badge-rec { background: #e11d48; } /* 추천/선착순 */
+        .badge-rec { background: #e11d48; }   /* 주력 추천 / 선착순 */
+        .badge-apt { background: #7c3aed; }   /* 실시간 청약 */
         .title { font-weight: bold; font-size: 13px; color: #0f172a; margin-bottom: 3px; }
         .desc { font-size: 11px; color: #475569; line-height: 1.4; }
-        .loading-bar {
-            position: absolute;
-            top: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
-            background: rgba(15, 23, 42, 0.85);
-            color: #ffffff;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            pointer-events: none;
-        }
     </style>
-    <!-- 카카오 지도 SDK (Geocoder 라이브러리 포함) -->
+    <!-- 카카오 지도 SDK -->
     <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=42553244187f3d43b01f98a4468460dc&libraries=services"></script>
 </head>
 <body>
 
-<div id="loading" class="loading-bar">부산 청약홈 실시간 데이터 불러오는 중...</div>
+<div class="region-controls">
+    <button class="btn-region active" onclick="moveToRegion('busan', this)">부산·경남</button>
+    <button class="btn-region" onclick="moveToRegion('national', this)">전국 전체</button>
+    <button class="btn-region" onclick="moveToRegion('seoul', this)">수도권</button>
+</div>
+
 <div id="map"></div>
 
 <script>
     var mapContainer = document.getElementById('map');
     var mapOption = {
-        center: new kakao.maps.LatLng(35.1795543, 129.0756416), // 부산 중심
+        center: new kakao.maps.LatLng(35.1795543, 129.0756416), // 기본: 부산 시청 중심
         level: 8
     };
     var map = new kakao.maps.Map(mapContainer, mapOption);
     var geocoder = new kakao.maps.services.Geocoder();
 
-    // 1. 기존 주요 관리 현장 (좌표 고정)
+    // 지역별 화면 이동 함수
+    function moveToRegion(type, element) {
+        document.querySelectorAll('.btn-region').forEach(function(btn) {
+            btn.classList.remove('active');
+        });
+        element.classList.add('active');
+
+        if (type === 'busan') {
+            map.setLevel(8);
+            map.panTo(new kakao.maps.LatLng(35.1795543, 129.0756416));
+        } else if (type === 'national') {
+            map.setLevel(12);
+            map.panTo(new kakao.maps.LatLng(36.3504, 127.3845)); // 대전 중심 전국 뷰
+        } else if (type === 'seoul') {
+            map.setLevel(9);
+            map.panTo(new kakao.maps.LatLng(37.5665, 126.9780)); // 서울 시청 중심
+        }
+    }
+
+    // 1. 핵심 추천 단지 고정 렌더링
     var fixedSites = [
         {
             name: "힐스테이트 연산",
             badge: "★ 선착순 추천",
-            badgeClass: "badge-rec",
             lat: 35.1843,
             lng: 129.0835,
             desc: "선착순 동호지정 계약 중"
         },
         {
             name: "한화포레나 부산덕천",
-            badge: "분양 안내",
-            badgeClass: "badge-rec",
+            badge: "★ 선착순 추천",
             lat: 35.2096,
             lng: 129.0102,
-            desc: "분양 정보 안내"
+            desc: "잔여세대 선착순 상담"
         }
     ];
 
     fixedSites.forEach(function(site) {
-        renderMarker(new kakao.maps.LatLng(site.lat, site.lng), site.badge, site.badgeClass, site.name, site.desc);
+        renderMarker(new kakao.maps.LatLng(site.lat, site.lng), site.badge, "badge-rec", site.name, site.desc);
     });
 
-    // 2. 청약홈 Open API 실시간 호출 (APT 분양정보)
+    // 2. 청약홈 Open API 전국 단위 호출 (최근 공고 100건)
     var serviceKey = "935de5c23598a914dd97149a0b92614db7f4de28d991d658d58dfaca03bad3a7";
-    var apiUrl = "https://api.odcloud.kr/api/ApplyhomeInfoDetailSvc/v1/getAPTLttotPblancDetail?page=1&perPage=50&serviceKey=" + encodeURIComponent(serviceKey);
+    var apiUrl = "https://api.odcloud.kr/api/ApplyhomeInfoDetailSvc/v1/getAPTLttotPblancDetail?page=1&perPage=100&serviceKey=" + encodeURIComponent(serviceKey);
     var proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(apiUrl);
 
     fetch(proxyUrl)
         .then(function(res) { return res.json(); })
         .then(function(data) {
-            document.getElementById('loading').style.display = 'none';
-
             if (!data || !data.data) return;
 
-            // 부산 지역 공고 필터링
-            var busanItems = data.data.filter(function(item) {
-                var region = item.SUBSCRPT_AREA_CODE_NM || "";
-                var addr = item.HSSPLY_ADRES || "";
-                return region.indexOf("부산") !== -1 || addr.indexOf("부산") !== -1;
-            });
+            // API 초당 호출 과부하 방지를 위한 순차 주소 변환
+            var items = data.data;
+            var index = 0;
 
-            busanItems.forEach(function(apt) {
+            function processNextItem() {
+                if (index >= items.length) return;
+
+                var apt = items[index];
+                index++;
+
                 var name = apt.HOUSE_NM || "아파트명 미제공";
                 var addr = apt.HSSPLY_ADRES;
                 var period = "접수: " + (apt.RCEPT_BGNDE || "-") + " ~ " + (apt.RCEPT_ENDDE || "-");
 
-                if (!addr) return;
+                if (!addr) {
+                    processNextItem();
+                    return;
+                }
 
-                // 단지 주소를 카카오 Geocoder로 실시간 좌표 변환 후 마커 표시
                 geocoder.addressSearch(addr, function(result, status) {
                     if (status === kakao.maps.services.Status.OK) {
                         var coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-                        renderMarker(coords, "청약 접수·예정", "badge-apt", name, period);
+                        renderMarker(coords, "실시간 청약", "badge-apt", name, period);
                     }
+                    setTimeout(processNextItem, 80); // 0.08초 간격 순차 요청 (안정성 확보)
                 });
-            });
+            }
+
+            processNextItem();
         })
         .catch(function(err) {
-            console.error("청약홈 API 로드 실패:", err);
-            document.getElementById('loading').innerText = "청약 데이터 수신 완료";
-            setTimeout(function() {
-                document.getElementById('loading').style.display = 'none';
-            }, 1500);
+            console.log("전국 청약 API 로드 실패:", err);
         });
 
-    // 마커 및 오버레이 렌더링 함수
+    // 마커 및 오버레이 생성 함수
     function renderMarker(position, badgeText, badgeClass, title, desc) {
         new kakao.maps.Marker({
             map: map,
