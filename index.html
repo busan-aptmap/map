@@ -381,8 +381,9 @@
         document.getElementById('modalOverlay').style.display = 'none';
     }
 
+    // 최신 300건 조회 후 세대수 많은 순으로 상위 100개 추출
     var serviceKey = "935de5c23598a914dd97149a0b92614db7f4de28d991d658d58dfaca03bad3a7";
-    var directUrl = "https://api.odcloud.kr/api/ApplyhomeInfoDetailSvc/v1/getAPTLttotPblancDetail?page=1&perPage=100&serviceKey=" + encodeURIComponent(serviceKey);
+    var directUrl = "https://api.odcloud.kr/api/ApplyhomeInfoDetailSvc/v1/getAPTLttotPblancDetail?page=1&perPage=300&serviceKey=" + encodeURIComponent(serviceKey);
 
     fetch(directUrl)
         .then(function(res) {
@@ -390,8 +391,18 @@
             return res.json();
         })
         .then(function(data) {
-            var items = (data && data.data) ? data.data : [];
-            document.getElementById('status').innerText = "최신 공고 " + items.length + "건 로드 중...";
+            var rawItems = (data && data.data) ? data.data : [];
+
+            // 세대수(TOT_SUPLY_HSHLDCO) 내림차순 정렬 (많은 단지 우선) 후 상위 100개 선택
+            var items = rawItems
+                .sort(function(a, b) {
+                    var scaleA = parseInt(a.TOT_SUPLY_HSHLDCO, 10) || 0;
+                    var scaleB = parseInt(b.TOT_SUPLY_HSHLDCO, 10) || 0;
+                    return scaleB - scaleA;
+                })
+                .slice(0, 100);
+
+            document.getElementById('status').innerText = "대단지 우선 " + items.length + "건 로드 중...";
 
             var count = 0;
             items.forEach(function(apt, idx) {
