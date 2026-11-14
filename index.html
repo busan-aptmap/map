@@ -423,7 +423,7 @@
     // 1순위: 카카오 키워드 검색(견본주택/모델하우스 제외) -> 2순위: 실제 공급위치 주소 검색
     function findAccurateCoords(name, rawAddr, callback) {
         if (name.indexOf("트라비스") !== -1 || name.indexOf("엄궁") !== -1) {
-            geocoder.addressSearch("부산광역시 사상구 엄궁동 132", function(result, status) {
+            geocoder.addressSearch("부산광역시 사상구 엄궁동 142", function(result, status) {
                 if (status === kakao.maps.services.Status.OK) {
                     callback(new kakao.maps.LatLng(result[0].y, result[0].x));
                 }
