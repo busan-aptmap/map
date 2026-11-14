@@ -271,8 +271,7 @@
             CNTRCT_CNCLS_BGNDE: "2025-06-09",
             CNTRCT_CNCLS_ENDDE: "2025-06-11",
             BSNS_MBY_NM: "중흥토건(주)"
-        },
-        
+        }
     ];
 
     function normalizeName(str) {
@@ -412,13 +411,8 @@
 
     // 1순위: 카카오 키워드 검색(견본주택/모델하우스 제외) -> 2순위: 실제 공급위치 주소 검색
     function findAccurateCoords(name, rawAddr, callback) {
-       function findAccurateCoords(name, rawAddr, callback) {
         if (name.indexOf("트라비스") !== -1 || name.indexOf("트래비스") !== -1 || name.indexOf("엄궁") !== -1) {
             callback(new kakao.maps.LatLng(35.1288, 128.9722));
-            return;
-        }
-                }
-            });
             return;
         }
 
@@ -555,10 +549,6 @@
             isFcfs: isFcfs
         });
     }
-</script>
-</body>
-</html>
-</html>
 </script>
 </body>
 </html>
