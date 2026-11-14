@@ -254,32 +254,13 @@
        };
     var map = new kakao.maps.Map(mapContainer, mapOption);
     var geocoder = new kakao.maps.services.Geocoder();
-var map = new kakao.maps.Map(mapContainer, mapOption);
-    var geocoder = new kakao.maps.services.Geocoder();
+    var places = new kakao.maps.services.Places();
 
-    // 👇 여기(257번 줄)에 아래 4줄을 붙여넣으세요
-    kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
-        var latlng = mouseEvent.latLng;
-        alert('위도(lat): ' + latlng.getLat().toFixed(6) + '\n경도(lng): ' + latlng.getLng().toFixed(6));
-    });
     var allMarkerItems = [];
     var currentFilter = 'all';
 
-    // [부산 핵심 단지 고정 리스트 - 정확한 좌표 및 누락 방지용]
-    var busanFixedList = [
-        {
-            HOUSE_NM: "에코델타시티 중흥S-클래스 리버시티",
-            HSSPLY_ADRES: "부산광역시 강서구 강동동 4157 (에코델타시티 2BL)",
-            TOT_SUPLY_HSHLDCO: "1067",
-            RCEPT_BGNDE: "2026-06-30",
-            RCEPT_ENDDE: "2026-07-02",
-            PRZWNER_PRESN_DATE: "2026-07-09",
-            CNTRCT_CNCLS_BGNDE: "2026-07-20",
-            CNTRCT_CNCLS_ENDDE: "2026-07-22",
-            BSNS_MBY_NM: "중흥토건(주)",
-            lat: 35.1765,
-            lng: 128.9205
-        },
+    // [누락 방지용 필수 추가 단지 리스트 - API 누락 단지 자동 보완용]
+    var mustIncludeList = [
         {
             HOUSE_NM: "에코델타시티 중흥S-클래스 에듀리버",
             HSSPLY_ADRES: "부산광역시 강서구 강동동 일원 (에코델타시티 4BL)",
@@ -289,9 +270,7 @@ var map = new kakao.maps.Map(mapContainer, mapOption);
             PRZWNER_PRESN_DATE: "2025-05-28",
             CNTRCT_CNCLS_BGNDE: "2025-06-09",
             CNTRCT_CNCLS_ENDDE: "2025-06-11",
-            BSNS_MBY_NM: "중흥토건(주)",
-            lat: 35.1722,
-            lng: 128.9235
+            BSNS_MBY_NM: "중흥토건(주)"
         },
         {
             HOUSE_NM: "에코델타시티 대광로제비앙 모아엘가",
@@ -302,97 +281,13 @@ var map = new kakao.maps.Map(mapContainer, mapOption);
             PRZWNER_PRESN_DATE: "2026-04-15",
             CNTRCT_CNCLS_BGNDE: "2026-04-27",
             CNTRCT_CNCLS_ENDDE: "2026-04-29",
-            BSNS_MBY_NM: "(주)대광건영 / 혜림건설(주)",
-            lat: 35.1688,
-            lng: 128.9260
-        },
-        {
-            HOUSE_NM: "에코델타시티 금강펜테리움 에코리버",
-            HSSPLY_ADRES: "부산광역시 강서구 강동동 일원 (에코델타시티 내)",
-            TOT_SUPLY_HSHLDCO: "380",
-            RCEPT_BGNDE: "2026-09-28",
-            RCEPT_ENDDE: "2026-09-30",
-            PRZWNER_PRESN_DATE: "2026-10-08",
-            CNTRCT_CNCLS_BGNDE: "2026-10-19",
-            CNTRCT_CNCLS_ENDDE: "2026-10-21",
-            BSNS_MBY_NM: "금강주택(주)",
-            lat: 35.1615,
-            lng: 128.9230
-        },
-        {
-            HOUSE_NM: "금정산 하늘채 루미엘",
-            HSSPLY_ADRES: "부산광역시 북구 만덕동 일원",
-            TOT_SUPLY_HSHLDCO: "669",
-            RCEPT_BGNDE: "2026-02-23",
-            RCEPT_ENDDE: "2026-02-25",
-            PRZWNER_PRESN_DATE: "2026-03-04",
-            CNTRCT_CNCLS_BGNDE: "2026-03-16",
-            CNTRCT_CNCLS_ENDDE: "2026-03-18",
-            BSNS_MBY_NM: "코오롱글로벌(주)",
-            lat: 35.2118,
-            lng: 129.0355
-        },
-        {
-            HOUSE_NM: "연제갤러리자이",
-            HSSPLY_ADRES: "부산광역시 연제구 연산동 일원",
-            TOT_SUPLY_HSHLDCO: "272",
-            RCEPT_BGNDE: "2026-10-19",
-            RCEPT_ENDDE: "2026-10-21",
-            PRZWNER_PRESN_DATE: "2026-10-28",
-            CNTRCT_CNCLS_BGNDE: "2026-11-09",
-            CNTRCT_CNCLS_ENDDE: "2026-11-11",
-            BSNS_MBY_NM: "GS건설(주)",
-            lat: 35.1845,
-            lng: 129.0752
-        },
-        {
-            HOUSE_NM: "두산위브 트리니뷰 구명역",
-            HSSPLY_ADRES: "부산광역시 북구 구포동 일원",
-            TOT_SUPLY_HSHLDCO: "330",
-            RCEPT_BGNDE: "2026-05-18",
-            RCEPT_ENDDE: "2026-05-20",
-            PRZWNER_PRESN_DATE: "2026-05-27",
-            CNTRCT_CNCLS_BGNDE: "2026-06-08",
-            CNTRCT_CNCLS_ENDDE: "2026-06-10",
-            BSNS_MBY_NM: "두산건설(주)",
-            lat: 35.1995,
-            lng: 129.0018
-        },
-        {
-            HOUSE_NM: "한화포레나 부산당리",
-            HSSPLY_ADRES: "부산광역시 사하구 당리동 일원",
-            TOT_SUPLY_HSHLDCO: "543",
-            RCEPT_BGNDE: "2026-03-30",
-            RCEPT_ENDDE: "2026-04-01",
-            PRZWNER_PRESN_DATE: "2026-04-08",
-            CNTRCT_CNCLS_BGNDE: "2026-04-20",
-            CNTRCT_CNCLS_ENDDE: "2026-04-22",
-            BSNS_MBY_NM: "(주)한화 건설부문",
-            lat: 35.1042,
-            lng: 128.9735
-        },
-        {
-            HOUSE_NM: "알티에로 광안",
-            HSSPLY_ADRES: "부산광역시 수영구 민락동 일원",
-            TOT_SUPLY_HSHLDCO: "366",
-            RCEPT_BGNDE: "2026-06-15",
-            RCEPT_ENDDE: "2026-06-17",
-            PRZWNER_PRESN_DATE: "2026-06-24",
-            CNTRCT_CNCLS_BGNDE: "2026-07-06",
-            CNTRCT_CNCLS_ENDDE: "2026-07-08",
-            BSNS_MBY_NM: "시행사/시공사 확인",
-            lat: 35.1585,
-            lng: 129.1245
+            BSNS_MBY_NM: "(주)대광건영 / 혜림건설(주)"
         }
     ];
 
     function normalizeName(str) {
         return (str || "").replace(/[\s\-\(\)·]/g, "");
     }
-
-    var fixedNameSet = new Set(busanFixedList.map(function(item) {
-        return normalizeName(item.HOUSE_NM);
-    }));
 
     function moveToRegion(type, element) {
         document.querySelectorAll('.btn-region').forEach(function(btn) {
@@ -441,7 +336,7 @@ var map = new kakao.maps.Map(mapContainer, mapOption);
     }
     var todayStr = getTodayString();
 
-    // 정당계약 마감 후 365일 이내면 선착순으로 판별하는 함수
+    // 정당계약 마감 후 365일 이내면 선착순으로 판별
     function checkIsFcfs(contractEndStr) {
         if (!contractEndStr) return false;
         if (contractEndStr >= todayStr) return false;
@@ -526,21 +421,34 @@ var map = new kakao.maps.Map(mapContainer, mapOption);
         document.getElementById('modalOverlay').style.display = 'none';
     }
 
-    var count = 0;
+    // 1순위: 카카오 키워드 검색(시/구 + 단지명)으로 실제 단지/예정지 위치 찾기 -> 실패 시 2순위 주소 검색
+    function findAccurateCoords(name, rawAddr, callback) {
+        var regionPrefix = rawAddr.split(" ").slice(0, 2).join(" "); // 예: "부산광역시 강서구"
+        var keyword = regionPrefix + " " + name;
 
-    // 1단계: 부산 핵심 고정 단지 먼저 정확한 좌표에 즉시 배치
-    busanFixedList.forEach(function(apt) {
-        var coords = new kakao.maps.LatLng(apt.lat, apt.lng);
-        var isFcfs = true; // 부산 고정 리스트는 선착순 계약·상담 우선 노출
-        var badgeText = "선착순 계약·상담";
-        var badgeClass = "badge-fcfs";
-        var descText = "정당계약 마감 (" + apt.CNTRCT_CNCLS_ENDDE + ")";
-        renderClickableMarker(coords, badgeText, badgeClass, apt.HOUSE_NM, descText, apt, isFcfs);
-        count++;
-    });
-    document.getElementById('status').innerText = "마커 " + count + "곳 표시 완료";
+        places.keywordSearch(keyword, function(data, status) {
+            if (status === kakao.maps.services.Status.OK && data.length > 0) {
+                callback(new kakao.maps.LatLng(data[0].y, data[0].x));
+            } else {
+                var searchAddr = cleanAddress(rawAddr);
+                geocoder.addressSearch(searchAddr, function(result, addrStatus) {
+                    if (addrStatus === kakao.maps.services.Status.OK) {
+                        callback(new kakao.maps.LatLng(result[0].y, result[0].x));
+                    } else {
+                        var shortAddr = searchAddr.split(" ").slice(0, 3).join(" ");
+                        if (shortAddr) {
+                            geocoder.addressSearch(shortAddr, function(retryRes, retryStatus) {
+                                if (retryStatus === kakao.maps.services.Status.OK) {
+                                    callback(new kakao.maps.LatLng(retryRes[0].y, retryRes[0].x));
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        });
+    }
 
-    // 2단계: 청약홈 API 데이터 로드 (부산 고정 단지와 중복되는 건 제외하고 추가)
     var serviceKey = "935de5c23598a914dd97149a0b92614db7f4de28d991d658d58dfaca03bad3a7";
     var directUrl = "https://api.odcloud.kr/api/ApplyhomeInfoDetailSvc/v1/getAPTLttotPblancDetail?page=1&perPage=300&serviceKey=" + encodeURIComponent(serviceKey);
 
@@ -560,15 +468,23 @@ var map = new kakao.maps.Map(mapContainer, mapOption);
                 })
                 .slice(0, 200);
 
+            // 누락 단지(에듀리버, 대광로제비앙 등) 중복 체크 후 병합
+            var existingNames = new Set(items.map(function(i) { return normalizeName(i.HOUSE_NM); }));
+            mustIncludeList.forEach(function(extra) {
+                if (!existingNames.has(normalizeName(extra.HOUSE_NM))) {
+                    items.unshift(extra);
+                }
+            });
+
+            document.getElementById('status').innerText = "대단지 우선 " + items.length + "건 로드 중...";
+
+            var count = 0;
             items.forEach(function(apt, idx) {
                 var name = apt.HOUSE_NM || "아파트명 미제공";
                 var rawAddr = apt.HSSPLY_ADRES;
                 var contractEnd = apt.CNTRCT_CNCLS_ENDDE || "";
 
                 if (!rawAddr) return;
-
-                // 부산 고정 리스트에 이미 등록된 단지면 중복 마커 방지 스킵
-                if (fixedNameSet.has(normalizeName(name))) return;
 
                 // 정당계약 마감 후 365일 경과한 오래된 마감 단지는 제외
                 if (contractEnd && contractEnd < todayStr && !checkIsFcfs(contractEnd)) return;
@@ -580,35 +496,18 @@ var map = new kakao.maps.Map(mapContainer, mapOption);
                     ? "정당계약 마감 (" + contractEnd + ")" 
                     : "접수: " + (apt.RCEPT_BGNDE || "-") + " ~ " + (apt.RCEPT_ENDDE || "-");
 
-                var searchAddr = cleanAddress(rawAddr);
-
                 setTimeout(function() {
-                    geocoder.addressSearch(searchAddr, function(result, status) {
-                        if (status === kakao.maps.services.Status.OK) {
-                            var coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-                            renderClickableMarker(coords, badgeText, badgeClass, name, descText, apt, isFcfs);
-                            count++;
-                            document.getElementById('status').innerText = "마커 " + count + "곳 표시 완료";
-                        } else {
-                            var shortAddr = searchAddr.split(" ").slice(0, 3).join(" ");
-                            if (shortAddr) {
-                                geocoder.addressSearch(shortAddr, function(retryRes, retryStatus) {
-                                    if (retryStatus === kakao.maps.services.Status.OK) {
-                                        var retryCoords = new kakao.maps.LatLng(retryRes[0].y, retryRes[0].x);
-                                        renderClickableMarker(retryCoords, badgeText, badgeClass, name, descText, apt, isFcfs);
-                                        count++;
-                                        document.getElementById('status').innerText = "마커 " + count + "곳 표시 완료";
-                                    }
-                                });
-                            }
-                        }
+                    findAccurateCoords(name, rawAddr, function(coords) {
+                        renderClickableMarker(coords, badgeText, badgeClass, name, descText, apt, isFcfs);
+                        count++;
+                        document.getElementById('status').innerText = "마커 " + count + "곳 표시 완료";
                     });
-                }, idx * 100);
+                }, idx * 120);
             });
         })
         .catch(function(err) {
             console.error(err);
-            document.getElementById('status').innerText = "부산 고정 마커 " + count + "곳 표시 완료";
+            document.getElementById('status').innerText = "API 연결 대기 중";
         });
 
     function renderClickableMarker(position, badgeText, badgeClass, title, desc, aptData, isFcfs) {
