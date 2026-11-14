@@ -10,7 +10,7 @@
     <meta property="og:url" content="https://busan-aptmap.github.io/map/">
     <meta name="naver-site-verification" content="994e1a4f94418b4d40ab140a6bfb2ff7bdad952b" />
     <meta name="google-site-verification" content="IpCDzYKq6bdLeO5Wqy3KqvXTJBzs2f8tNjh78JleSAM" />
-    <style>
+   <style>
         html, body {
             margin: 0;
             padding: 0;
@@ -34,16 +34,18 @@
         }
         .region-controls {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             gap: 6px;
             background: rgba(255, 255, 255, 0.95);
             padding: 6px;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.18);
             border: 1px solid #cbd5e1;
-       .btn-region, .btn-filter {
+        }
+        .btn-region, .btn-filter {
             flex: 1;
             text-align: center;
+            white-space: nowrap;
             border: none;
             background: #f1f5f9;
             color: #475569;
