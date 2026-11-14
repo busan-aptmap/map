@@ -336,7 +336,6 @@
     }
     var todayStr = getTodayString();
 
-    // 정당계약 마감 후 365일 이내면 선착순으로 판별
     function checkIsFcfs(contractEndStr) {
         if (!contractEndStr) return false;
         if (contractEndStr >= todayStr) return false;
@@ -348,8 +347,6 @@
 
     function cleanAddress(rawAddr) {
         if (!rawAddr) return "";
-        function cleanAddress(rawAddr) {
-        if (!rawAddr) return "";
         return rawAddr
             .replace(/\(.*?\)/g, '')
             .replace(/외\s*\d+.*$/g, '')
@@ -357,53 +354,6 @@
             .replace(/BL.*$/gi, '')
             .replace(/로트.*$/gi, '')
             .trim();
-    }
-
-    // 1순위: 카카오 키워드 검색(견본주택/모델하우스 제외) -> 2순위: 실제 공급위치 주소 검색
-    function findAccurateCoords(name, rawAddr, callback) {
-        // 엄궁 트라비스 하늘채 현장 위치 직접 보정
-        if (name.indexOf("트라비스") !== -1 || name.indexOf("엄궁") !== -1) {
-            geocoder.addressSearch("부산광역시 사상구 엄궁동 132", function(result, status) {
-                if (status === kakao.maps.services.Status.OK) {
-                    callback(new kakao.maps.LatLng(result[0].y, result[0].x));
-                }
-            });
-            return;
-        }
-
-        var regionPrefix = rawAddr.split(" ").slice(0, 2).join(" ");
-        var keyword = regionPrefix + " " + name;
-
-        places.keywordSearch(keyword, function(data, status) {
-            var filtered = (status === kakao.maps.services.Status.OK)
-                ? data.filter(function(item) {
-                    var pName = item.place_name || "";
-                    return pName.indexOf("모델하우스") === -1 &&
-                           pName.indexOf("견본주택") === -1 &&
-                           pName.indexOf("홍보관") === -1;
-                })
-                : [];
-
-            if (filtered.length > 0) {
-                callback(new kakao.maps.LatLng(filtered[0].y, filtered[0].x));
-            } else {
-                var searchAddr = cleanAddress(rawAddr);
-                geocoder.addressSearch(searchAddr, function(result, addrStatus) {
-                    if (addrStatus === kakao.maps.services.Status.OK) {
-                        callback(new kakao.maps.LatLng(result[0].y, result[0].x));
-                    } else {
-                        var shortAddr = searchAddr.split(" ").slice(0, 3).join(" ");
-                        if (shortAddr) {
-                            geocoder.addressSearch(shortAddr, function(retryRes, retryStatus) {
-                                if (retryStatus === kakao.maps.services.Status.OK) {
-                                    callback(new kakao.maps.LatLng(retryRes[0].y, retryRes[0].x));
-                                }
-                            });
-                        }
-                    }
-                });
-            }
-        });
     }
 
     function openModal(apt, isFcfs) {
@@ -470,14 +420,32 @@
         document.getElementById('modalOverlay').style.display = 'none';
     }
 
-    // 1순위: 카카오 키워드 검색(시/구 + 단지명)으로 실제 단지/예정지 위치 찾기 -> 실패 시 2순위 주소 검색
+    // 1순위: 카카오 키워드 검색(견본주택/모델하우스 제외) -> 2순위: 실제 공급위치 주소 검색
     function findAccurateCoords(name, rawAddr, callback) {
-        var regionPrefix = rawAddr.split(" ").slice(0, 2).join(" "); // 예: "부산광역시 강서구"
+        if (name.indexOf("트라비스") !== -1 || name.indexOf("엄궁") !== -1) {
+            geocoder.addressSearch("부산광역시 사상구 엄궁동 132", function(result, status) {
+                if (status === kakao.maps.services.Status.OK) {
+                    callback(new kakao.maps.LatLng(result[0].y, result[0].x));
+                }
+            });
+            return;
+        }
+
+        var regionPrefix = rawAddr.split(" ").slice(0, 2).join(" ");
         var keyword = regionPrefix + " " + name;
 
         places.keywordSearch(keyword, function(data, status) {
-            if (status === kakao.maps.services.Status.OK && data.length > 0) {
-                callback(new kakao.maps.LatLng(data[0].y, data[0].x));
+            var filtered = (status === kakao.maps.services.Status.OK)
+                ? data.filter(function(item) {
+                    var pName = item.place_name || "";
+                    return pName.indexOf("모델하우스") === -1 &&
+                           pName.indexOf("견본주택") === -1 &&
+                           pName.indexOf("홍보관") === -1;
+                })
+                : [];
+
+            if (filtered.length > 0) {
+                callback(new kakao.maps.LatLng(filtered[0].y, filtered[0].x));
             } else {
                 var searchAddr = cleanAddress(rawAddr);
                 geocoder.addressSearch(searchAddr, function(result, addrStatus) {
@@ -517,7 +485,6 @@
                 })
                 .slice(0, 200);
 
-            // 누락 단지(에듀리버, 대광로제비앙 등) 중복 체크 후 병합
             var existingNames = new Set(items.map(function(i) { return normalizeName(i.HOUSE_NM); }));
             mustIncludeList.forEach(function(extra) {
                 if (!existingNames.has(normalizeName(extra.HOUSE_NM))) {
@@ -535,7 +502,6 @@
 
                 if (!rawAddr) return;
 
-                // 정당계약 마감 후 365일 경과한 오래된 마감 단지는 제외
                 if (contractEnd && contractEnd < todayStr && !checkIsFcfs(contractEnd)) return;
 
                 var isFcfs = checkIsFcfs(contractEnd);
@@ -600,6 +566,7 @@
     }
 </script>
 </body>
+</html>
 </html>
 </script>
 </body>
