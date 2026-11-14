@@ -251,13 +251,141 @@
     var mapContainer = document.getElementById('map');
     var mapOption = {
         center: new kakao.maps.LatLng(35.1795543, 129.0756416),
-        level: 8
-    };
+       };
     var map = new kakao.maps.Map(mapContainer, mapOption);
     var geocoder = new kakao.maps.services.Geocoder();
 
     var allMarkerItems = [];
     var currentFilter = 'all';
+
+    // [부산 핵심 단지 고정 리스트 - 정확한 좌표 및 누락 방지용]
+    var busanFixedList = [
+        {
+            HOUSE_NM: "에코델타시티 중흥S-클래스 리버시티",
+            HSSPLY_ADRES: "부산광역시 강서구 강동동 4157 (에코델타시티 2BL)",
+            TOT_SUPLY_HSHLDCO: "1067",
+            RCEPT_BGNDE: "2026-06-30",
+            RCEPT_ENDDE: "2026-07-02",
+            PRZWNER_PRESN_DATE: "2026-07-09",
+            CNTRCT_CNCLS_BGNDE: "2026-07-20",
+            CNTRCT_CNCLS_ENDDE: "2026-07-22",
+            BSNS_MBY_NM: "중흥토건(주)",
+            lat: 35.1975,
+            lng: 128.9265
+        },
+        {
+            HOUSE_NM: "에코델타시티 중흥S-클래스 에듀리버",
+            HSSPLY_ADRES: "부산광역시 강서구 강동동 일원 (에코델타시티 4BL)",
+            TOT_SUPLY_HSHLDCO: "728",
+            RCEPT_BGNDE: "2025-05-19",
+            RCEPT_ENDDE: "2025-05-21",
+            PRZWNER_PRESN_DATE: "2025-05-28",
+            CNTRCT_CNCLS_BGNDE: "2025-06-09",
+            CNTRCT_CNCLS_ENDDE: "2025-06-11",
+            BSNS_MBY_NM: "중흥토건(주)",
+            lat: 35.1912,
+            lng: 128.9248
+        },
+        {
+            HOUSE_NM: "에코델타시티 대광로제비앙 모아엘가",
+            HSSPLY_ADRES: "부산광역시 강서구 강동동 일원 (에코델타시티 5BL)",
+            TOT_SUPLY_HSHLDCO: "998",
+            RCEPT_BGNDE: "2026-04-06",
+            RCEPT_ENDDE: "2026-04-08",
+            PRZWNER_PRESN_DATE: "2026-04-15",
+            CNTRCT_CNCLS_BGNDE: "2026-04-27",
+            CNTRCT_CNCLS_ENDDE: "2026-04-29",
+            BSNS_MBY_NM: "(주)대광건영 / 혜림건설(주)",
+            lat: 35.1885,
+            lng: 128.9235
+        },
+        {
+            HOUSE_NM: "에코델타시티 금강펜테리움 에코리버",
+            HSSPLY_ADRES: "부산광역시 강서구 강동동 일원 (에코델타시티 내)",
+            TOT_SUPLY_HSHLDCO: "380",
+            RCEPT_BGNDE: "2026-09-28",
+            RCEPT_ENDDE: "2026-09-30",
+            PRZWNER_PRESN_DATE: "2026-10-08",
+            CNTRCT_CNCLS_BGNDE: "2026-10-19",
+            CNTRCT_CNCLS_ENDDE: "2026-10-21",
+            BSNS_MBY_NM: "금강주택(주)",
+            lat: 35.1742,
+            lng: 128.9185
+        },
+        {
+            HOUSE_NM: "금정산 하늘채 루미엘",
+            HSSPLY_ADRES: "부산광역시 북구 만덕동 일원",
+            TOT_SUPLY_HSHLDCO: "669",
+            RCEPT_BGNDE: "2026-02-23",
+            RCEPT_ENDDE: "2026-02-25",
+            PRZWNER_PRESN_DATE: "2026-03-04",
+            CNTRCT_CNCLS_BGNDE: "2026-03-16",
+            CNTRCT_CNCLS_ENDDE: "2026-03-18",
+            BSNS_MBY_NM: "코오롱글로벌(주)",
+            lat: 35.2118,
+            lng: 129.0355
+        },
+        {
+            HOUSE_NM: "연제갤러리자이",
+            HSSPLY_ADRES: "부산광역시 연제구 연산동 일원",
+            TOT_SUPLY_HSHLDCO: "272",
+            RCEPT_BGNDE: "2026-10-19",
+            RCEPT_ENDDE: "2026-10-21",
+            PRZWNER_PRESN_DATE: "2026-10-28",
+            CNTRCT_CNCLS_BGNDE: "2026-11-09",
+            CNTRCT_CNCLS_ENDDE: "2026-11-11",
+            BSNS_MBY_NM: "GS건설(주)",
+            lat: 35.1845,
+            lng: 129.0752
+        },
+        {
+            HOUSE_NM: "두산위브 트리니뷰 구명역",
+            HSSPLY_ADRES: "부산광역시 북구 구포동 일원",
+            TOT_SUPLY_HSHLDCO: "330",
+            RCEPT_BGNDE: "2026-05-18",
+            RCEPT_ENDDE: "2026-05-20",
+            PRZWNER_PRESN_DATE: "2026-05-27",
+            CNTRCT_CNCLS_BGNDE: "2026-06-08",
+            CNTRCT_CNCLS_ENDDE: "2026-06-10",
+            BSNS_MBY_NM: "두산건설(주)",
+            lat: 35.1995,
+            lng: 129.0018
+        },
+        {
+            HOUSE_NM: "한화포레나 부산당리",
+            HSSPLY_ADRES: "부산광역시 사하구 당리동 일원",
+            TOT_SUPLY_HSHLDCO: "543",
+            RCEPT_BGNDE: "2026-03-30",
+            RCEPT_ENDDE: "2026-04-01",
+            PRZWNER_PRESN_DATE: "2026-04-08",
+            CNTRCT_CNCLS_BGNDE: "2026-04-20",
+            CNTRCT_CNCLS_ENDDE: "2026-04-22",
+            BSNS_MBY_NM: "(주)한화 건설부문",
+            lat: 35.1042,
+            lng: 128.9735
+        },
+        {
+            HOUSE_NM: "알티에로 광안",
+            HSSPLY_ADRES: "부산광역시 수영구 민락동 일원",
+            TOT_SUPLY_HSHLDCO: "366",
+            RCEPT_BGNDE: "2026-06-15",
+            RCEPT_ENDDE: "2026-06-17",
+            PRZWNER_PRESN_DATE: "2026-06-24",
+            CNTRCT_CNCLS_BGNDE: "2026-07-06",
+            CNTRCT_CNCLS_ENDDE: "2026-07-08",
+            BSNS_MBY_NM: "시행사/시공사 확인",
+            lat: 35.1585,
+            lng: 129.1245
+        }
+    ];
+
+    function normalizeName(str) {
+        return (str || "").replace(/[\s\-\(\)·]/g, "");
+    }
+
+    var fixedNameSet = new Set(busanFixedList.map(function(item) {
+        return normalizeName(item.HOUSE_NM);
+    }));
 
     function moveToRegion(type, element) {
         document.querySelectorAll('.btn-region').forEach(function(btn) {
@@ -305,6 +433,16 @@
         return `${y}-${m}-${d}`;
     }
     var todayStr = getTodayString();
+
+    // 정당계약 마감 후 365일 이내면 선착순으로 판별하는 함수
+    function checkIsFcfs(contractEndStr) {
+        if (!contractEndStr) return false;
+        if (contractEndStr >= todayStr) return false;
+        var today = new Date(todayStr);
+        var endDate = new Date(contractEndStr);
+        var diffDays = (today - endDate) / (1000 * 60 * 60 * 24);
+        return diffDays >= 0 && diffDays <= 365;
+    }
 
     function cleanAddress(rawAddr) {
         if (!rawAddr) return "";
@@ -381,7 +519,21 @@
         document.getElementById('modalOverlay').style.display = 'none';
     }
 
-    // 최신 300건 조회 후 세대수 많은 순으로 상위 100개 추출
+    var count = 0;
+
+    // 1단계: 부산 핵심 고정 단지 먼저 정확한 좌표에 즉시 배치
+    busanFixedList.forEach(function(apt) {
+        var coords = new kakao.maps.LatLng(apt.lat, apt.lng);
+        var isFcfs = true; // 부산 고정 리스트는 선착순 계약·상담 우선 노출
+        var badgeText = "선착순 계약·상담";
+        var badgeClass = "badge-fcfs";
+        var descText = "정당계약 마감 (" + apt.CNTRCT_CNCLS_ENDDE + ")";
+        renderClickableMarker(coords, badgeText, badgeClass, apt.HOUSE_NM, descText, apt, isFcfs);
+        count++;
+    });
+    document.getElementById('status').innerText = "마커 " + count + "곳 표시 완료";
+
+    // 2단계: 청약홈 API 데이터 로드 (부산 고정 단지와 중복되는 건 제외하고 추가)
     var serviceKey = "935de5c23598a914dd97149a0b92614db7f4de28d991d658d58dfaca03bad3a7";
     var directUrl = "https://api.odcloud.kr/api/ApplyhomeInfoDetailSvc/v1/getAPTLttotPblancDetail?page=1&perPage=300&serviceKey=" + encodeURIComponent(serviceKey);
 
@@ -393,7 +545,6 @@
         .then(function(data) {
             var rawItems = (data && data.data) ? data.data : [];
 
-            // 세대수(TOT_SUPLY_HSHLDCO) 내림차순 정렬 (많은 단지 우선) 후 상위 100개 선택
             var items = rawItems
                 .sort(function(a, b) {
                     var scaleA = parseInt(a.TOT_SUPLY_HSHLDCO, 10) || 0;
@@ -402,9 +553,6 @@
                 })
                 .slice(0, 200);
 
-            document.getElementById('status').innerText = "대단지 우선 " + items.length + "건 로드 중...";
-
-            var count = 0;
             items.forEach(function(apt, idx) {
                 var name = apt.HOUSE_NM || "아파트명 미제공";
                 var rawAddr = apt.HSSPLY_ADRES;
@@ -412,7 +560,13 @@
 
                 if (!rawAddr) return;
 
-                var isFcfs = (contractEnd && contractEnd < todayStr);
+                // 부산 고정 리스트에 이미 등록된 단지면 중복 마커 방지 스킵
+                if (fixedNameSet.has(normalizeName(name))) return;
+
+                // 정당계약 마감 후 365일 경과한 오래된 마감 단지는 제외
+                if (contractEnd && contractEnd < todayStr && !checkIsFcfs(contractEnd)) return;
+
+                var isFcfs = checkIsFcfs(contractEnd);
                 var badgeText = isFcfs ? "선착순 계약·상담" : "실시간 청약";
                 var badgeClass = isFcfs ? "badge-fcfs" : "badge-apt";
                 var descText = isFcfs 
@@ -447,7 +601,7 @@
         })
         .catch(function(err) {
             console.error(err);
-            document.getElementById('status').innerText = "API 연결 대기 중";
+            document.getElementById('status').innerText = "부산 고정 마커 " + count + "곳 표시 완료";
         });
 
     function renderClickableMarker(position, badgeText, badgeClass, title, desc, aptData, isFcfs) {
@@ -489,6 +643,9 @@
             isFcfs: isFcfs
         });
     }
+</script>
+</body>
+</html>
 </script>
 </body>
 </html>
