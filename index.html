@@ -254,7 +254,14 @@
        };
     var map = new kakao.maps.Map(mapContainer, mapOption);
     var geocoder = new kakao.maps.services.Geocoder();
+var map = new kakao.maps.Map(mapContainer, mapOption);
+    var geocoder = new kakao.maps.services.Geocoder();
 
+    // 👇 여기(257번 줄)에 아래 4줄을 붙여넣으세요
+    kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
+        var latlng = mouseEvent.latLng;
+        alert('위도(lat): ' + latlng.getLat().toFixed(6) + '\n경도(lng): ' + latlng.getLng().toFixed(6));
+    });
     var allMarkerItems = [];
     var currentFilter = 'all';
 
