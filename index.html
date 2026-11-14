@@ -160,6 +160,13 @@
             text-decoration: underline;
             margin-top: 6px;
         }
+       @media (max-width: 768px) {
+            .control-panel { top: 8px; left: 8px; right: 8px; gap: 4px; }
+            .region-controls { padding: 4px; gap: 4px; }
+            .btn-region, .btn-filter { padding: 6px 4px; font-size: 11px; }
+            .status-badge { top: auto; bottom: 12px; right: 10px; font-size: 10px; padding: 6px 10px; }
+            .modal-content { width: 92%; max-height: 85vh; overflow-y: auto; padding: 14px; }
+        }
     </style>
     <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=42553244187f3d43b01f98a4468460dc&libraries=services"></script>
 </head>
