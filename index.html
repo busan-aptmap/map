@@ -348,18 +348,24 @@
 
     function cleanAddress(rawAddr) {
         if (!rawAddr) return "";
+        function cleanAddress(rawAddr) {
+        if (!rawAddr) return "";
         return rawAddr
             .replace(/\(.*?\)/g, '')
             .replace(/외\s*\d+.*$/g, '')
             .replace(/일원.*$/g, '')
-           // 1순위: 카카오 키워드 검색(견본주택/모델하우스 제외) -> 2순위: 실제 공급위치 주소 검색
+            .replace(/BL.*$/gi, '')
+            .replace(/로트.*$/gi, '')
+            .trim();
+    }
+
+    // 1순위: 카카오 키워드 검색(견본주택/모델하우스 제외) -> 2순위: 실제 공급위치 주소 검색
     function findAccurateCoords(name, rawAddr, callback) {
-        // 엄궁 트라비스 하늘채 등 현장 위치 직접 보정
+        // 엄궁 트라비스 하늘채 현장 위치 직접 보정
         if (name.indexOf("트라비스") !== -1 || name.indexOf("엄궁") !== -1) {
             geocoder.addressSearch("부산광역시 사상구 엄궁동 132", function(result, status) {
                 if (status === kakao.maps.services.Status.OK) {
                     callback(new kakao.maps.LatLng(result[0].y, result[0].x));
-                    return;
                 }
             });
             return;
@@ -369,7 +375,6 @@
         var keyword = regionPrefix + " " + name;
 
         places.keywordSearch(keyword, function(data, status) {
-            // 모델하우스, 견본주택, 홍보관은 검색 결과에서 제외
             var filtered = (status === kakao.maps.services.Status.OK)
                 ? data.filter(function(item) {
                     var pName = item.place_name || "";
@@ -399,9 +404,6 @@
                 });
             }
         });
-    }
-            .replace(/로트.*$/gi, '')
-            .trim();
     }
 
     function openModal(apt, isFcfs) {
