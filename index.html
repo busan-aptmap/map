@@ -272,17 +272,7 @@
             CNTRCT_CNCLS_ENDDE: "2025-06-11",
             BSNS_MBY_NM: "중흥토건(주)"
         },
-        {
-            HOUSE_NM: "에코델타시티 대광로제비앙 모아엘가",
-            HSSPLY_ADRES: "부산광역시 강서구 강동동 일원 (에코델타시티 5BL)",
-            TOT_SUPLY_HSHLDCO: "998",
-            RCEPT_BGNDE: "2026-04-06",
-            RCEPT_ENDDE: "2026-04-08",
-            PRZWNER_PRESN_DATE: "2026-04-15",
-            CNTRCT_CNCLS_BGNDE: "2026-04-27",
-            CNTRCT_CNCLS_ENDDE: "2026-04-29",
-            BSNS_MBY_NM: "(주)대광건영 / 혜림건설(주)"
-        }
+        
     ];
 
     function normalizeName(str) {
@@ -422,10 +412,11 @@
 
     // 1순위: 카카오 키워드 검색(견본주택/모델하우스 제외) -> 2순위: 실제 공급위치 주소 검색
     function findAccurateCoords(name, rawAddr, callback) {
-        if (name.indexOf("트라비스") !== -1 || name.indexOf("엄궁") !== -1) {
-            geocoder.addressSearch("부산광역시 사상구 엄궁동 142", function(result, status) {
-                if (status === kakao.maps.services.Status.OK) {
-                    callback(new kakao.maps.LatLng(result[0].y, result[0].x));
+       function findAccurateCoords(name, rawAddr, callback) {
+        if (name.indexOf("트라비스") !== -1 || name.indexOf("트래비스") !== -1 || name.indexOf("엄궁") !== -1) {
+            callback(new kakao.maps.LatLng(35.1288, 128.9722));
+            return;
+        }
                 }
             });
             return;
