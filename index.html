@@ -98,6 +98,7 @@
         }
         .badge-apt { background: #16a34a; }
         .badge-fcfs { background: #ea580c; }
+        .badge-check { background: #dc2626; }
 
         .title { font-weight: bold; font-size: 14px; color: #0f172a; margin-bottom: 4px; }
         .desc { font-size: 11px; color: #475569; line-height: 1.4; }
@@ -265,14 +266,13 @@
     }
     var todayStr = getTodayString();
 
-    function checkIsFcfs(contractEndStr) {
-        if (!contractEndStr) return false;
-        if (contractEndStr >= todayStr) return false;
-        var today = new Date(todayStr);
-        var endDate = new Date(contractEndStr);
-        var diffDays = (today - endDate) / (1000 * 60 * 60 * 24);
-        return diffDays >= 0 && diffDays <= 365;
-    }
+    function getAptStatus(contractEndStr) {
+    if (!contractEndStr || contractEndStr >= todayStr) return 'apt';
+    var today = new Date(todayStr);
+    var endDate = new Date(contractEndStr);
+    var diffDays = (today - endDate) / (1000 * 60 * 60 * 24);
+    return diffDays <= 365 ? 'fcfs' : 'check';
+}
 
     function cleanAddress(rawAddr) {
         if (!rawAddr) return "";
@@ -425,16 +425,19 @@
                 var rawAddr = apt.HSSPLY_ADRES;
                 var contractEnd = apt.CNTRCT_CNCLS_ENDDE || "";
 
-                if (!rawAddr) return;
+               if (!rawAddr) return;
 
-                if (contractEnd && contractEnd < todayStr && !checkIsFcfs(contractEnd)) return;
-
-                var isFcfs = checkIsFcfs(contractEnd);
-                var badgeText = isFcfs ? "선착순 계약·상담" : "실시간 청약";
-                var badgeClass = isFcfs ? "badge-fcfs" : "badge-apt";
-                var descText = isFcfs 
-                    ? "정당계약 마감 (" + contractEnd + ")" 
-                    : "접수: " + (apt.RCEPT_BGNDE || "-") + " ~ " + (apt.RCEPT_ENDDE || "-");
+             var statusType = getAptStatus(contractEnd);
+             var isFcfs = (statusType === 'fcfs' || statusType === 'check');
+             var badgeText = statusType === 'apt' ? "실시간 청약"
+                           : statusType === 'fcfs' ? "선착순 계약 (잔여·마감 확인)"
+                           : "⚠️ 1년 경과·분양마감 확인필요";
+             var badgeClass = statusType === 'apt' ? "badge-apt"
+                            : statusType === 'fcfs' ? "badge-fcfs"
+                            : "badge-check";
+             var descText = statusType === 'apt'
+                 ? "접수: " + (apt.RCEPT_BGNDE || "-") + " ~ " + (apt.RCEPT_ENDDE || "-")
+                 : "정당계약 마감 (" + contractEnd + ")";
 
                 setTimeout(function() {
                     findAccurateCoords(name, rawAddr, function(coords) {
