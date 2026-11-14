@@ -352,7 +352,54 @@
             .replace(/\(.*?\)/g, '')
             .replace(/외\s*\d+.*$/g, '')
             .replace(/일원.*$/g, '')
-            .replace(/BL.*$/gi, '')
+           // 1순위: 카카오 키워드 검색(견본주택/모델하우스 제외) -> 2순위: 실제 공급위치 주소 검색
+    function findAccurateCoords(name, rawAddr, callback) {
+        // 엄궁 트라비스 하늘채 등 현장 위치 직접 보정
+        if (name.indexOf("트라비스") !== -1 || name.indexOf("엄궁") !== -1) {
+            geocoder.addressSearch("부산광역시 사상구 엄궁동 132", function(result, status) {
+                if (status === kakao.maps.services.Status.OK) {
+                    callback(new kakao.maps.LatLng(result[0].y, result[0].x));
+                    return;
+                }
+            });
+            return;
+        }
+
+        var regionPrefix = rawAddr.split(" ").slice(0, 2).join(" ");
+        var keyword = regionPrefix + " " + name;
+
+        places.keywordSearch(keyword, function(data, status) {
+            // 모델하우스, 견본주택, 홍보관은 검색 결과에서 제외
+            var filtered = (status === kakao.maps.services.Status.OK)
+                ? data.filter(function(item) {
+                    var pName = item.place_name || "";
+                    return pName.indexOf("모델하우스") === -1 &&
+                           pName.indexOf("견본주택") === -1 &&
+                           pName.indexOf("홍보관") === -1;
+                })
+                : [];
+
+            if (filtered.length > 0) {
+                callback(new kakao.maps.LatLng(filtered[0].y, filtered[0].x));
+            } else {
+                var searchAddr = cleanAddress(rawAddr);
+                geocoder.addressSearch(searchAddr, function(result, addrStatus) {
+                    if (addrStatus === kakao.maps.services.Status.OK) {
+                        callback(new kakao.maps.LatLng(result[0].y, result[0].x));
+                    } else {
+                        var shortAddr = searchAddr.split(" ").slice(0, 3).join(" ");
+                        if (shortAddr) {
+                            geocoder.addressSearch(shortAddr, function(retryRes, retryStatus) {
+                                if (retryStatus === kakao.maps.services.Status.OK) {
+                                    callback(new kakao.maps.LatLng(retryRes[0].y, retryRes[0].x));
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        });
+    }
             .replace(/로트.*$/gi, '')
             .trim();
     }
