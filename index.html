@@ -208,10 +208,10 @@
     var places = new kakao.maps.services.Places();
 
     var allMarkerItems = [];
-    var currentRegion = 'busan'; // 초기 선택 지역: 부산·경남
-    var currentFilter = 'all';   // 초기 선택 유형: 전체 단지
-    var totalTargetCount = 0;    // 로드 예정 전체 건수
-    var loadedCount = 0;         // 좌표 변환 완료 건수
+    var currentRegion = 'busan';
+    var currentFilter = 'all';
+    var totalTargetCount = 0;
+    var loadedCount = 0;
 
     // [누락 방지용 필수 추가 단지 리스트 - API 누락 단지 자동 보완용]
     var mustIncludeList = [
@@ -465,7 +465,7 @@
         document.getElementById('modalOverlay').style.display = 'none';
     }
 
-    // 1순위: 카카오 키워드 검색(견본주택/모델하우스 제외) -> 2순위: 실제 공급위치 주소 검색
+    // 원래의 정확한 좌표 검색 로직 (1순위 키워드 -> 2순위 상세주소 -> 3순위 단축주소)
     function findAccurateCoords(name, rawAddr, callback) {
         if (name.indexOf("트라비스") !== -1 || name.indexOf("트래비스") !== -1 || name.indexOf("엄궁") !== -1) {
             callback(new kakao.maps.LatLng(35.1268, 128.9710));
@@ -512,6 +512,7 @@
     }
 
     var serviceKey = "935de5c23598a914dd97149a0b92614db7f4de28d991d658d58dfaca03bad3a7";
+    // 원래대로 1000건 호출 + 공급규모(대단지) 순 200건 정렬 복구
     var directUrl = "https://api.odcloud.kr/api/ApplyhomeInfoDetailSvc/v1/getAPTLttotPblancDetail?page=1&perPage=1000&serviceKey=" + encodeURIComponent(serviceKey);
 
     fetch(directUrl)
@@ -558,6 +559,7 @@
                     ? "접수: " + (apt.RCEPT_BGNDE || "-") + " ~ " + (apt.RCEPT_ENDDE || "-")
                     : "정당계약 마감 (" + contractEnd + ")";
 
+                // 원래의 안정적인 120ms 간격 복구
                 setTimeout(function() {
                     findAccurateCoords(name, rawAddr, function(coords) {
                         loadedCount++;
