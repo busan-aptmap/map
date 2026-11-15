@@ -132,6 +132,8 @@
             font-size: 20px;
             cursor: pointer;
             color: #64748b;
+            background: none;
+            border: none;
         }
         .modal-title { font-size: 17px; font-weight: bold; color: #0f172a; margin-bottom: 12px; }
         .modal-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 14px; }
@@ -199,13 +201,17 @@
     var mapContainer = document.getElementById('map');
     var mapOption = {
         center: new kakao.maps.LatLng(35.1795543, 129.0756416),
-       };
+        level: 8
+    };
     var map = new kakao.maps.Map(mapContainer, mapOption);
     var geocoder = new kakao.maps.services.Geocoder();
     var places = new kakao.maps.services.Places();
 
     var allMarkerItems = [];
-    var currentFilter = 'all';
+    var currentRegion = 'busan'; // 초기 선택 지역: 부산·경남
+    var currentFilter = 'all';   // 초기 선택 유형: 전체 단지
+    var totalTargetCount = 0;    // 로드 예정 전체 건수
+    var loadedCount = 0;         // 좌표 변환 완료 건수
 
     // [누락 방지용 필수 추가 단지 리스트 - API 누락 단지 자동 보완용]
     var mustIncludeList = [
@@ -226,7 +232,63 @@
         return (str || "").replace(/[\s\-\(\)·]/g, "");
     }
 
+    // 주소 기반 권역 판별 함수
+    function matchRegion(addr, regionType) {
+        if (regionType === 'national') return true;
+        if (!addr) return false;
+        var clean = addr.trim();
+
+        if (regionType === 'busan') {
+            return clean.indexOf("부산") === 0 ||
+                   clean.indexOf("울산") === 0 ||
+                   clean.indexOf("경상남도") === 0 ||
+                   clean.indexOf("경남") === 0 ||
+                   clean.indexOf("거제시") !== -1 ||
+                   clean.indexOf("창원시") !== -1 ||
+                   clean.indexOf("김해시") !== -1 ||
+                   clean.indexOf("양산시") !== -1 ||
+                   clean.indexOf("진주시") !== -1;
+        }
+
+        if (regionType === 'seoul') {
+            return clean.indexOf("서울") === 0 ||
+                   clean.indexOf("인천") === 0 ||
+                   clean.indexOf("경기도") === 0 ||
+                   clean.indexOf("경기 ") === 0;
+        }
+
+        return true;
+    }
+
+    // 지역 + 유형 통합 필터링 및 상태 카운트 갱신
+    function applyFilters() {
+        var visibleCount = 0;
+        allMarkerItems.forEach(function(item) {
+            var regionMatch = matchRegion(item.addr, currentRegion);
+            var typeMatch = (currentFilter === 'all') ||
+                            (currentFilter === 'fcfs' && item.isFcfs) ||
+                            (currentFilter === 'apt' && !item.isFcfs);
+
+            var shouldShow = regionMatch && typeMatch;
+            item.marker.setMap(shouldShow ? map : null);
+            item.overlay.setMap(shouldShow ? map : null);
+
+            if (shouldShow) visibleCount++;
+        });
+
+        var regionLabel = currentRegion === 'busan' ? '부산·경남'
+                        : currentRegion === 'seoul' ? '수도권'
+                        : '전국';
+
+        if (loadedCount < totalTargetCount) {
+            document.getElementById('status').innerText = regionLabel + " 표시: " + visibleCount + "곳 (로딩 중...)";
+        } else {
+            document.getElementById('status').innerText = regionLabel + " 표시: " + visibleCount + "곳";
+        }
+    }
+
     function moveToRegion(type, element) {
+        currentRegion = type;
         document.querySelectorAll('.btn-region').forEach(function(btn) {
             btn.classList.remove('active');
         });
@@ -242,6 +304,8 @@
             map.setLevel(9);
             map.panTo(new kakao.maps.LatLng(37.5665, 126.9780));
         }
+
+        applyFilters();
     }
 
     function filterMarkers(filterType, element) {
@@ -251,17 +315,7 @@
         });
         element.classList.add('active');
 
-        var visibleCount = 0;
-        allMarkerItems.forEach(function(item) {
-            var shouldShow = (filterType === 'all') ||
-                             (filterType === 'fcfs' && item.isFcfs) ||
-                             (filterType === 'apt' && !item.isFcfs);
-
-            item.marker.setMap(shouldShow ? map : null);
-            item.overlay.setMap(shouldShow ? map : null);
-            if (shouldShow) visibleCount++;
-        });
-        document.getElementById('status').innerText = "표시된 단지: " + visibleCount + "곳";
+        applyFilters();
     }
 
     function getTodayString() {
@@ -274,12 +328,12 @@
     var todayStr = getTodayString();
 
     function getAptStatus(contractEndStr) {
-    if (!contractEndStr || contractEndStr >= todayStr) return 'apt';
-    var today = new Date(todayStr);
-    var endDate = new Date(contractEndStr);
-    var diffDays = (today - endDate) / (1000 * 60 * 60 * 24);
-    return diffDays <= 365 ? 'fcfs' : 'check';
-}
+        if (!contractEndStr || contractEndStr >= todayStr) return 'apt';
+        var today = new Date(todayStr);
+        var endDate = new Date(contractEndStr);
+        var diffDays = (today - endDate) / (1000 * 60 * 60 * 24);
+        return diffDays <= 365 ? 'fcfs' : 'check';
+    }
 
     function cleanAddress(rawAddr) {
         if (!rawAddr) return "";
@@ -291,50 +345,52 @@
             .replace(/로트.*$/gi, '')
             .trim();
     }
-// 구글 시트 담당자 관리 연동
-        var sheetManagers = [];
-        var SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9i0XauGTtL6JWFSjKx0trX6LAnw-_hvb6LV3YEe1RKWnZLSxyi2szhaYaHyrSqDj5rwdIZLuO53Vt/pub?gid=0&single=true&output=csv";
 
-        fetch(SHEET_CSV_URL)
-            .then(function(res) { return res.text(); })
-            .then(function(csvText) {
-                var lines = csvText.split(/\r?\n/);
-                for (var i = 1; i < lines.length; i++) {
-                    var cols = lines[i].split(",");
-                    if (cols.length >= 6) {
-                        var keyword = (cols[0] || "").replace(/^"|"$/g, "").trim();
-                        var role = (cols[1] || "").replace(/^"|"$/g, "").trim();
-                        var managerName = (cols[2] || "").replace(/^"|"$/g, "").trim();
-                        var phone = (cols[3] || "").replace(/^"|"$/g, "").trim();
-                        var kakao = (cols[4] || "").replace(/^"|"$/g, "").trim();
-                        var status = (cols[5] || "").replace(/^"|"$/g, "").trim().toUpperCase();
-                        var endDate = (cols[6] || "").replace(/^"|"$/g, "").trim();
-                        if (keyword && status === "ON") {
-                            sheetManagers.push({
-                                keyword: keyword,
-                                role: role,
-                                managerName: managerName,
-                                phone: phone,
-                                kakao: kakao,
-                                endDate: endDate
-                            });
-                        }
+    // 구글 시트 담당자 관리 연동
+    var sheetManagers = [];
+    var SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9i0XauGTtL6JWFSjKx0trX6LAnw-_hvb6LV3YEe1RKWnZLSxyi2szhaYaHyrSqDj5rwdIZLuO53Vt/pub?gid=0&single=true&output=csv";
+
+    fetch(SHEET_CSV_URL)
+        .then(function(res) { return res.text(); })
+        .then(function(csvText) {
+            var lines = csvText.split(/\r?\n/);
+            for (var i = 1; i < lines.length; i++) {
+                var cols = lines[i].split(",");
+                if (cols.length >= 6) {
+                    var keyword = (cols[0] || "").replace(/^"|"$/g, "").trim();
+                    var role = (cols[1] || "").replace(/^"|"$/g, "").trim();
+                    var managerName = (cols[2] || "").replace(/^"|"$/g, "").trim();
+                    var phone = (cols[3] || "").replace(/^"|"$/g, "").trim();
+                    var kakao = (cols[4] || "").replace(/^"|"$/g, "").trim();
+                    var status = (cols[5] || "").replace(/^"|"$/g, "").trim().toUpperCase();
+                    var endDate = (cols[6] || "").replace(/^"|"$/g, "").trim();
+                    if (keyword && status === "ON") {
+                        sheetManagers.push({
+                            keyword: keyword,
+                            role: role,
+                            managerName: managerName,
+                            phone: phone,
+                            kakao: kakao,
+                            endDate: endDate
+                        });
                     }
                 }
-            })
-            .catch(function(err) { console.log("담당자 시트 로드 대기:", err); });
-
-        function getAssignedManager(aptName) {
-            var today = new Date().toISOString().slice(0, 10);
-            for (var i = 0; i < sheetManagers.length; i++) {
-                var m = sheetManagers[i];
-                if (aptName.indexOf(m.keyword) !== -1) {
-                    if (m.endDate && m.endDate < today) continue;
-                    return m;
-                }
             }
-            return null;
+        })
+        .catch(function(err) { console.log("담당자 시트 로드 대기:", err); });
+
+    function getAssignedManager(aptName) {
+        var today = new Date().toISOString().slice(0, 10);
+        for (var i = 0; i < sheetManagers.length; i++) {
+            var m = sheetManagers[i];
+            if (aptName.indexOf(m.keyword) !== -1) {
+                if (m.endDate && m.endDate < today) continue;
+                return m;
+            }
         }
+        return null;
+    }
+
     function openModal(apt, isFcfs) {
         var modalOverlay = document.getElementById('modalOverlay');
         var modalBody = document.getElementById('modalBody');
@@ -380,8 +436,7 @@
                     ${checkPoints}
                 </ul>
             </div>
-
-           `;
+        `;
 
         var assigned = getAssignedManager(name);
         var targetKakao = (assigned && assigned.kakao) ? assigned.kakao : "https://open.kakao.com/o/sg4ZB3Wi";
@@ -443,8 +498,12 @@
                             geocoder.addressSearch(shortAddr, function(retryRes, retryStatus) {
                                 if (retryStatus === kakao.maps.services.Status.OK) {
                                     callback(new kakao.maps.LatLng(retryRes[0].y, retryRes[0].x));
+                                } else {
+                                    callback(null);
                                 }
                             });
+                        } else {
+                            callback(null);
                         }
                     }
                 });
@@ -478,33 +537,34 @@
                 }
             });
 
-            document.getElementById('status').innerText = "대단지 우선 " + items.length + "건 로드 중...";
+            var validItems = items.filter(function(apt) { return !!apt.HSSPLY_ADRES; });
+            totalTargetCount = validItems.length;
+            document.getElementById('status').innerText = "대단지 우선 " + totalTargetCount + "건 로드 중...";
 
-            var count = 0;
-            items.forEach(function(apt, idx) {
+            validItems.forEach(function(apt, idx) {
                 var name = apt.HOUSE_NM || "아파트명 미제공";
                 var rawAddr = apt.HSSPLY_ADRES;
                 var contractEnd = apt.CNTRCT_CNCLS_ENDDE || "";
 
-               if (!rawAddr) return;
-
-             var statusType = getAptStatus(contractEnd);
-             var isFcfs = (statusType === 'fcfs' || statusType === 'check');
-             var badgeText = statusType === 'apt' ? "실시간 청약"
-                           : statusType === 'fcfs' ? "선착순 계약 (잔여·마감 확인)"
-                           : "⚠️ 1년 경과·분양마감 확인필요";
-             var badgeClass = statusType === 'apt' ? "badge-apt"
-                            : statusType === 'fcfs' ? "badge-fcfs"
-                            : "badge-check";
-             var descText = statusType === 'apt'
-                 ? "접수: " + (apt.RCEPT_BGNDE || "-") + " ~ " + (apt.RCEPT_ENDDE || "-")
-                 : "정당계약 마감 (" + contractEnd + ")";
+                var statusType = getAptStatus(contractEnd);
+                var isFcfs = (statusType === 'fcfs' || statusType === 'check');
+                var badgeText = statusType === 'apt' ? "실시간 청약"
+                              : statusType === 'fcfs' ? "선착순 계약 (잔여·마감 확인)"
+                              : "⚠️ 1년 경과·분양마감 확인필요";
+                var badgeClass = statusType === 'apt' ? "badge-apt"
+                               : statusType === 'fcfs' ? "badge-fcfs"
+                               : "badge-check";
+                var descText = statusType === 'apt'
+                    ? "접수: " + (apt.RCEPT_BGNDE || "-") + " ~ " + (apt.RCEPT_ENDDE || "-")
+                    : "정당계약 마감 (" + contractEnd + ")";
 
                 setTimeout(function() {
                     findAccurateCoords(name, rawAddr, function(coords) {
-                        renderClickableMarker(coords, badgeText, badgeClass, name, descText, apt, isFcfs);
-                        count++;
-                        document.getElementById('status').innerText = "마커 " + count + "곳 표시 완료";
+                        loadedCount++;
+                        if (coords) {
+                            renderClickableMarker(coords, badgeText, badgeClass, name, descText, apt, isFcfs, rawAddr);
+                        }
+                        applyFilters();
                     });
                 }, idx * 120);
             });
@@ -514,10 +574,12 @@
             document.getElementById('status').innerText = "API 연결 대기 중";
         });
 
-    function renderClickableMarker(position, badgeText, badgeClass, title, desc, aptData, isFcfs) {
-        var shouldShow = (currentFilter === 'all') ||
-                         (currentFilter === 'fcfs' && isFcfs) ||
-                         (currentFilter === 'apt' && !isFcfs);
+    function renderClickableMarker(position, badgeText, badgeClass, title, desc, aptData, isFcfs, rawAddr) {
+        var regionMatch = matchRegion(rawAddr, currentRegion);
+        var typeMatch = (currentFilter === 'all') ||
+                        (currentFilter === 'fcfs' && isFcfs) ||
+                        (currentFilter === 'apt' && !isFcfs);
+        var shouldShow = regionMatch && typeMatch;
 
         var marker = new kakao.maps.Marker({
             map: shouldShow ? map : null,
@@ -550,7 +612,8 @@
         allMarkerItems.push({
             marker: marker,
             overlay: overlay,
-            isFcfs: isFcfs
+            isFcfs: isFcfs,
+            addr: rawAddr
         });
     }
 </script>
