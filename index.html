@@ -99,6 +99,7 @@
         .badge-apt { background: #16a34a; }
         .badge-fcfs { background: #ea580c; }
         .badge-check { background: #dc2626; }
+        .badge-old { background: #4f46e5; }
 
         .title { font-weight: bold; font-size: 14px; color: #0f172a; margin-bottom: 4px; }
         .desc { font-size: 11px; color: #475569; line-height: 1.4; }
@@ -151,9 +152,25 @@
             font-size: 12px;
             font-weight: bold;
             text-decoration: none;
+            box-sizing: border-box;
         }
         .btn-kakao { background: #fee500; color: #191919; }
         .btn-call { background: #2563eb; color: #ffffff; }
+        .btn-realty-full {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 11px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            text-decoration: none;
+            background: #0f172a;
+            color: #ffffff;
+            box-sizing: border-box;
+            margin-bottom: 8px;
+        }
+        .btn-realty-full:hover { background: #1e293b; }
         .modal-btn-link {
             display: block;
             text-align: center;
@@ -212,8 +229,9 @@
     var currentFilter = 'all';
     var totalTargetCount = 0;
     var loadedCount = 0;
+    var fixedMismatchLogs = []; // 견본주택 오매칭 교정 기록용
 
-    // [누락 방지용 필수 추가 단지 리스트 - API 범위 밖 주력 현장]
+    // [누락 방지용 필수 추가 단지 리스트]
     var mustIncludeList = [
         {
             HOUSE_NM: "에코델타시티 중흥S-클래스 에듀리버",
@@ -239,7 +257,52 @@
         }
     ];
 
-    // [에코델타시티 블록별 실제 위경도 매핑 - 오직 부산 강서구 주소일 때만 작동]
+    // [공고명 속 지명 키워드 -> 실제 행정구역 및 강제 교정 검색어 매핑]
+    // 공공데이터 HSSPLY_ADRES에 강서구 견본주택 주소가 적혀 있어도 제목의 실제 현장 지명으로 교정
+    var titleRegionHints = [
+        { keyword: "초량", expectedRegion: "동구", fallbackQuery: "부산광역시 동구 초량동", fallbackLat: 35.1185, fallbackLng: 129.0398 },
+        { keyword: "장안", expectedRegion: "기장군", fallbackQuery: "부산광역시 기장군 장안읍", fallbackLat: 35.3315, fallbackLng: 129.2475 },
+        { keyword: "일광", expectedRegion: "기장군", fallbackQuery: "부산광역시 기장군 일광읍", fallbackLat: 35.2635, fallbackLng: 129.2312 },
+        { keyword: "정관", expectedRegion: "기장군", fallbackQuery: "부산광역시 기장군 정관읍", fallbackLat: 35.3218, fallbackLng: 129.1795 },
+        { keyword: "기장", expectedRegion: "기장군", fallbackQuery: "부산광역시 기장군 기장읍", fallbackLat: 35.2445, fallbackLng: 129.2222 },
+        { keyword: "김해", expectedRegion: "김해시", fallbackQuery: "경상남도 김해시", fallbackLat: 35.2285, fallbackLng: 128.8894 },
+        { keyword: "장유", expectedRegion: "김해시", fallbackQuery: "경상남도 김해시 장유동", fallbackLat: 35.1975, fallbackLng: 128.8055 },
+        { keyword: "율하", expectedRegion: "김해시", fallbackQuery: "경상남도 김해시 율하동", fallbackLat: 35.1745, fallbackLng: 128.8215 },
+        { keyword: "양산", expectedRegion: "양산시", fallbackQuery: "경상남도 양산시", fallbackLat: 35.3350, fallbackLng: 129.0372 },
+        { keyword: "사송", expectedRegion: "양산시", fallbackQuery: "경상남도 양산시 동면 사송리", fallbackLat: 35.3085, fallbackLng: 129.0585 },
+        { keyword: "물금", expectedRegion: "양산시", fallbackQuery: "경상남도 양산시 물금읍", fallbackLat: 35.3125, fallbackLng: 129.0065 },
+        { keyword: "창원", expectedRegion: "창원시", fallbackQuery: "경상남도 창원시", fallbackLat: 35.2279, fallbackLng: 128.6818 },
+        { keyword: "거제", expectedRegion: "거제시", fallbackQuery: "경상남도 거제시", fallbackLat: 34.8806, fallbackLng: 128.6211 },
+        { keyword: "연제", expectedRegion: "연제구", fallbackQuery: "부산광역시 연제구 연산동", fallbackLat: 35.1763, fallbackLng: 129.0798 },
+        { keyword: "연산", expectedRegion: "연제구", fallbackQuery: "부산광역시 연제구 연산동", fallbackLat: 35.1825, fallbackLng: 129.0815 },
+        { keyword: "엄궁", expectedRegion: "사상구", fallbackQuery: "부산광역시 사상구 엄궁동", fallbackLat: 35.1268, fallbackLng: 128.9710 },
+        { keyword: "사상", expectedRegion: "사상구", fallbackQuery: "부산광역시 사상구", fallbackLat: 35.1526, fallbackLng: 128.9912 },
+        { keyword: "해운대", expectedRegion: "해운대구", fallbackQuery: "부산광역시 해운대구", fallbackLat: 35.1631, fallbackLng: 129.1636 },
+        { keyword: "센텀", expectedRegion: "해운대구", fallbackQuery: "부산광역시 해운대구 재송동", fallbackLat: 35.1755, fallbackLng: 129.1295 },
+        { keyword: "수영", expectedRegion: "수영구", fallbackQuery: "부산광역시 수영구", fallbackLat: 35.1456, fallbackLng: 129.1131 },
+        { keyword: "광안", expectedRegion: "수영구", fallbackQuery: "부산광역시 수영구 광안동", fallbackLat: 35.1578, fallbackLng: 129.1155 },
+        { keyword: "동래", expectedRegion: "동래구", fallbackQuery: "부산광역시 동래구", fallbackLat: 35.2048, fallbackLng: 129.0837 },
+        { keyword: "온천장", expectedRegion: "동래구", fallbackQuery: "부산광역시 동래구 온천동", fallbackLat: 35.2202, fallbackLng: 129.0825 },
+        { keyword: "대연", expectedRegion: "남구", fallbackQuery: "부산광역시 남구 대연동", fallbackLat: 35.1365, fallbackLng: 129.0955 },
+        { keyword: "문현", expectedRegion: "남구", fallbackQuery: "부산광역시 남구 문현동", fallbackLat: 35.1385, fallbackLng: 129.0655 },
+        { keyword: "화명", expectedRegion: "북구", fallbackQuery: "부산광역시 북구 화명동", fallbackLat: 35.2355, fallbackLng: 129.0125 },
+        { keyword: "덕천", expectedRegion: "북구", fallbackQuery: "부산광역시 북구 덕천동", fallbackLat: 35.2115, fallbackLng: 129.0055 },
+        { keyword: "하단", expectedRegion: "사하구", fallbackQuery: "부산광역시 사하구 하단동", fallbackLat: 35.1065, fallbackLng: 128.9665 },
+        { keyword: "괴정", expectedRegion: "사하구", fallbackQuery: "부산광역시 사하구 괴정동", fallbackLat: 35.0995, fallbackLng: 128.9925 },
+        { keyword: "장림", expectedRegion: "사하구", fallbackQuery: "부산광역시 사하구 장림동", fallbackLat: 35.0815, fallbackLng: 128.9685 },
+        { keyword: "다대", expectedRegion: "사하구", fallbackQuery: "부산광역시 사하구 다대동", fallbackLat: 35.0565, fallbackLng: 128.9685 },
+        { keyword: "서면", expectedRegion: "부산진구", fallbackQuery: "부산광역시 부산진구 부전동", fallbackLat: 35.1578, fallbackLng: 129.0595 },
+        { keyword: "양정", expectedRegion: "부산진구", fallbackQuery: "부산광역시 부산진구 양정동", fallbackLat: 35.1725, fallbackLng: 129.0705 },
+        { keyword: "가야", expectedRegion: "부산진구", fallbackQuery: "부산광역시 부산진구 가야동", fallbackLat: 35.1545, fallbackLng: 129.0345 },
+        { keyword: "부암", expectedRegion: "부산진구", fallbackQuery: "부산광역시 부산진구 부암동", fallbackLat: 35.1645, fallbackLng: 129.0465 },
+        { keyword: "범일", expectedRegion: "동구", fallbackQuery: "부산광역시 동구 범일동", fallbackLat: 35.1415, fallbackLng: 129.0585 },
+        { keyword: "영도", expectedRegion: "영도구", fallbackQuery: "부산광역시 영도구", fallbackLat: 35.0912, fallbackLng: 129.0679 },
+        { keyword: "금정", expectedRegion: "금정구", fallbackQuery: "부산광역시 금정구", fallbackLat: 35.2428, fallbackLng: 129.0921 },
+        { keyword: "장전", expectedRegion: "금정구", fallbackQuery: "부산광역시 금정구 장전동", fallbackLat: 35.2315, fallbackLng: 129.0865 },
+        { keyword: "울산", expectedRegion: "울산", fallbackQuery: "울산광역시", fallbackLat: 35.5384, fallbackLng: 129.3114 }
+    ];
+
+    // [에코델타시티 블록별 실제 위경도 매핑 - 오직 공고명에 에코델타가 있거나 강서구 현장일 때만 적용]
     var ecoDeltaBlockCoords = [
         { keywords: ["24BL", "아테라"], lat: 35.1415, lng: 128.9235 },
         { keywords: ["11BL", "트레파크", "트래파크"], lat: 35.1372, lng: 128.9268 },
@@ -306,6 +369,10 @@
             document.getElementById('status').innerText = regionLabel + " 표시: " + visibleCount + "곳 (로딩 중...)";
         } else {
             document.getElementById('status').innerText = regionLabel + " 표시: " + visibleCount + "곳";
+            if (fixedMismatchLogs.length > 0 && !window._loggedOnce) {
+                window._loggedOnce = true;
+                console.warn("⚠️ 견본주택 주소 이탈로 자동 교정된 현장 (" + fixedMismatchLogs.length + "건):", fixedMismatchLogs);
+            }
         }
     }
 
@@ -349,12 +416,19 @@
     }
     var todayStr = getTodayString();
 
+    // 분양 상태 분류:
+    // 'apt': 청약/정당계약 진행중
+    // 'fcfs': 정당계약 종료 후 1년 이내 (선착순 계약)
+    // 'check': 정당계약 종료 후 1년 ~ 3년 미만
+    // 'old': 정당계약 종료 후 3년(1095일) 이상 경과 (입주완료 · 매물/전월세 상담)
     function getAptStatus(contractEndStr) {
         if (!contractEndStr || contractEndStr >= todayStr) return 'apt';
         var today = new Date(todayStr);
         var endDate = new Date(contractEndStr);
         var diffDays = (today - endDate) / (1000 * 60 * 60 * 24);
-        return diffDays <= 365 ? 'fcfs' : 'check';
+        if (diffDays <= 365) return 'fcfs';
+        if (diffDays < 1095) return 'check';
+        return 'old';
     }
 
     function cleanAddress(rawAddr) {
@@ -413,7 +487,7 @@
         return null;
     }
 
-    function openModal(apt, isFcfs) {
+    function openModal(apt, statusType) {
         var modalOverlay = document.getElementById('modalOverlay');
         var modalBody = document.getElementById('modalBody');
 
@@ -428,17 +502,25 @@
         var construct = apt.BSNS_MBY_NM || apt.CNSTRCT_ENTRPS_NM || "-";
         var url = apt.PBLANC_URL || "";
 
-        var statusBadge = isFcfs 
-            ? `<span class="badge badge-fcfs">정당계약 종료 (선착순 동호수 지정·상담)</span>` 
-            : `<span class="badge badge-apt">실시간 청약 일정 진행중</span>`;
+        var isFcfs = (statusType === 'fcfs' || statusType === 'check' || statusType === 'old');
 
-        var checkPoints = isFcfs
-            ? `<li><strong>청약통장 불필요:</strong> 만 19세 이상이면 거주지·주택수 무관하게 잔여 동·호수 선착순 지정 계약 가능</li>
-               <li><strong>계약 조건 및 혜택 확인:</strong> 계약금 정액제, 중도금 무이자·후불제 조건 및 발코니 확장비 포함 여부 필수 체크</li>
-               <li><strong>권리·전매 체크:</strong> 전매제한 기간, 실거주 의무 유무 및 입주 시점 자금 조달 계획 사전 점검 권장</li>`
-            : `<li><strong>청약 자격 사전 점검:</strong> 모집공고일 기준 해당 지역 거주기간, 예치금 충족 여부 및 세대주 요건 확인</li>
+        var statusBadge = statusType === 'apt'
+            ? `<span class="badge badge-apt">실시간 청약 일정 진행중</span>`
+            : statusType === 'old'
+            ? `<span class="badge badge-old">입주완료 · 잔여세대 및 매물/전월세 상담</span>`
+            : `<span class="badge badge-fcfs">정당계약 종료 (선착순 동호수 지정·상담)</span>`;
+
+        var checkPoints = statusType === 'apt'
+            ? `<li><strong>청약 자격 사전 점검:</strong> 모집공고일 기준 해당 지역 거주기간, 예치금 충족 여부 및 세대주 요건 확인</li>
                <li><strong>가점제·추첨제 비율:</strong> 전용면적별 가점제/추첨제 당첨 비율 및 생애최초·신혼부부 특별공급 중복 청약 여부 체크</li>
-               <li><strong>계약금 및 대출 한도:</strong> 당첨자 발표 후 정당계약일까지 초기 계약금(10%) 마련 및 중도금 대출 가능 여부 확인</li>`;
+               <li><strong>계약금 및 대출 한도:</strong> 당첨자 발표 후 정당계약일까지 초기 계약금(10%) 마련 및 중도금 대출 가능 여부 확인</li>`
+            : statusType === 'old'
+            ? `<li><strong>입주 후 매매·전월세 시세:</strong> 단지 내 실거래가 추이, 동·층별 로열동 매물 현황 및 전세가율 비교 점검</li>
+               <li><strong>등기·권리관계 분석:</strong> 소유권이전등기 완료 여부, 근저당권 설정 내역 및 전세보증보험 가입 요건 확인</li>
+               <li><strong>잔여 회사보유분 체크:</strong> 일부 단지의 경우 준공 후 미분양·회사보유분 특별조건 분양 물량 유무 별도 확인 가능</li>`
+            : `<li><strong>청약통장 불필요:</strong> 만 19세 이상이면 거주지·주택수 무관하게 잔여 동·호수 선착순 지정 계약 가능</li>
+               <li><strong>계약 조건 및 혜택 확인:</strong> 계약금 정액제, 중도금 무이자·후불제 조건 및 발코니 확장비 포함 여부 필수 체크</li>
+               <li><strong>권리·전매 체크:</strong> 전매제한 기간, 실거주 의무 유무 및 입주 시점 자금 조달 계획 사전 점검 권장</li>`;
 
         var html = `
             <div style="margin-bottom: 6px;">${statusBadge}</div>
@@ -473,6 +555,7 @@
             <a href="${targetKakao}" target="_blank" class="btn-kakao">💬 카톡 1:1 잔여세대·권리상담</a>
             <a href="tel:${targetPhone}" class="btn-call">📞 현장 직통 전화상담</a>
         </div>
+        <a href="${targetKakao}" target="_blank" class="btn-realty-full">🏢 전담 부동산 매물 · 전세/월세 상담</a>
         `;
 
         if (url) {
@@ -487,22 +570,80 @@
         document.getElementById('modalOverlay').style.display = 'none';
     }
 
-    // [재설계된 정위치 좌표 검색 로직]
-    // 1순위: 엄궁 트라비스 / 강서구 에코델타시티 블록 전용 매핑
-    // 2순위: 공급위치 정식 주소 지오코딩 (초량, 김해, 장안, 연제 등 100% 실제 지번 위치로 직행)
-    // 3순위: 주소 지오코딩 실패 시에만 카카오 장소 검색(상호) 보조 실행
+    // 공고명에서 실제 지역 힌트 추출
+    function detectTitleRegionHint(name) {
+        var norm = normalizeName(name);
+        for (var i = 0; i < titleRegionHints.length; i++) {
+            if (norm.indexOf(titleRegionHints[i].keyword) !== -1) {
+                return titleRegionHints[i];
+            }
+        }
+        return null;
+    }
+
+    // 변환된 좌표가 공고명 속 실제 지역과 일치하는지 검증 (견본주택 주소 이탈 자동 차단)
+    function verifyAndFixRegionCoords(name, rawAddr, coords, callback) {
+        var hint = detectTitleRegionHint(name);
+        if (!hint) {
+            callback(coords);
+            return;
+        }
+
+        geocoder.coord2RegionCode(coords.getLng(), coords.getLat(), function(result, status) {
+            if (status === kakao.maps.services.Status.OK && result.length > 0) {
+                var regionFull = result[0].address_name || "";
+                // 공고명에는 '초량(동구)'이나 '장안(기장군)', '김해(김해시)'인데 좌표가 엉뚱한 구/시(예: 강서구 견본주택)로 찍힌 경우
+                if (regionFull.indexOf(hint.expectedRegion) === -1) {
+                    fixedMismatchLogs.push({
+                        name: name,
+                        apiAddr: rawAddr,
+                        wrongRegion: regionFull,
+                        correctedTo: hint.fallbackQuery
+                    });
+
+                    // 1) 실제 현장 지역명 + 단지명으로 재검색
+                    places.keywordSearch(hint.fallbackQuery + " " + name, function(pData, pStatus) {
+                        var validPlace = (pStatus === kakao.maps.services.Status.OK)
+                            ? pData.find(function(item) {
+                                return (item.address_name || "").indexOf(hint.expectedRegion) !== -1 &&
+                                       (item.place_name || "").indexOf("모델하우스") === -1 &&
+                                       (item.place_name || "").indexOf("견본주택") === -1;
+                            })
+                            : null;
+
+                        if (validPlace) {
+                            callback(new kakao.maps.LatLng(validPlace.y, validPlace.x));
+                        } else {
+                            // 2) 해당 읍/면/동 또는 시/군/구 정위치 지오코딩으로 교정
+                            geocoder.addressSearch(hint.fallbackQuery, function(gRes, gStatus) {
+                                if (gStatus === kakao.maps.services.Status.OK) {
+                                    callback(new kakao.maps.LatLng(gRes[0].y, gRes[0].x));
+                                } else {
+                                    callback(new kakao.maps.LatLng(hint.fallbackLat, hint.fallbackLng));
+                                }
+                            });
+                        }
+                    });
+                    return;
+                }
+            }
+            callback(coords);
+        });
+    }
+
     function findAccurateCoords(name, rawAddr, callback) {
         var normName = normalizeName(name);
         var combinedText = normName + "_" + normalizeName(rawAddr);
+        var hint = detectTitleRegionHint(name);
 
-        // 엄궁 트라비스 예외 고정
-        if (rawAddr.indexOf("사상구") !== -1 && (normName.indexOf("트라비스") !== -1 || normName.indexOf("트래비스") !== -1)) {
+        // 0순위: 엄궁 트라비스 예외 고정
+        if (normName.indexOf("트라비스") !== -1 || normName.indexOf("트래비스") !== -1) {
             callback(new kakao.maps.LatLng(35.1268, 128.9710));
             return;
         }
 
-        // 강서구 에코델타시티 블록 전용 매핑 (타 지역 주소는 절대 진입 불가)
-        if (rawAddr.indexOf("강서구") !== -1 && (rawAddr.indexOf("강동동") !== -1 || normName.indexOf("에코델타") !== -1)) {
+        // 강서구 에코델타시티 블록 전용 매핑 (공고명에 다른 지역 힌트(초량/장안/김해 등)가 없을 때만 작동)
+        if (!hint && rawAddr.indexOf("강서구") !== -1 && (rawAddr.indexOf("강동동") !== -1 || normName.indexOf("에코델타") !== -1)) {
             for (var i = 0; i < ecoDeltaBlockCoords.length; i++) {
                 var block = ecoDeltaBlockCoords[i];
                 for (var j = 0; j < block.keywords.length; j++) {
@@ -514,25 +655,22 @@
             }
         }
 
-        // 2순위 (핵심): 공급위치 정식 지번/도로명 주소로 직접 좌표 변환
-        // 상호 검색을 먼저 하지 않으므로 초량·김해·장안 현장이 강서구 홍보관으로 빨려 들어가는 원천 차단
+        // 1순위: 공급위치 정식 지번/도로명 주소 지오코딩 -> 검증 함수 통과
         var searchAddr = cleanAddress(rawAddr);
         geocoder.addressSearch(searchAddr, function(result, addrStatus) {
             if (addrStatus === kakao.maps.services.Status.OK) {
-                callback(new kakao.maps.LatLng(result[0].y, result[0].x));
+                var rawCoords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                verifyAndFixRegionCoords(name, rawAddr, rawCoords, callback);
             } else {
-                // 3순위: 상세 번지 인식 실패 시 카카오 키워드 검색(동일 시/군/구 내부 검증 필수)
-                var regionPrefix = rawAddr.split(" ").slice(0, 2).join(" ");
+                // 2순위: 카카오 키워드 검색 -> 검증 함수 통과
+                var regionPrefix = hint ? hint.fallbackQuery : rawAddr.split(" ").slice(0, 2).join(" ");
                 var keyword = regionPrefix + " " + name;
 
                 places.keywordSearch(keyword, function(data, status) {
                     var filtered = (status === kakao.maps.services.Status.OK)
                         ? data.filter(function(item) {
                             var pName = item.place_name || "";
-                            var pAddr = item.address_name || "";
-                            var sameRegion = regionPrefix ? (pAddr.indexOf(regionPrefix.split(" ")[1] || "") !== -1) : true;
-                            return sameRegion &&
-                                   pName.indexOf("모델하우스") === -1 &&
+                            return pName.indexOf("모델하우스") === -1 &&
                                    pName.indexOf("견본주택") === -1 &&
                                    pName.indexOf("홍보관") === -1 &&
                                    pName.indexOf("분양사무소") === -1;
@@ -540,7 +678,10 @@
                         : [];
 
                     if (filtered.length > 0) {
-                        callback(new kakao.maps.LatLng(filtered[0].y, filtered[0].x));
+                        var kwCoords = new kakao.maps.LatLng(filtered[0].y, filtered[0].x);
+                        verifyAndFixRegionCoords(name, rawAddr, kwCoords, callback);
+                    } else if (hint) {
+                        callback(new kakao.maps.LatLng(hint.fallbackLat, hint.fallbackLng));
                     } else {
                         var shortAddr = searchAddr.split(" ").slice(0, 3).join(" ");
                         if (shortAddr) {
@@ -623,12 +764,14 @@
             var contractEnd = apt.CNTRCT_CNCLS_ENDDE || "";
 
             var statusType = getAptStatus(contractEnd);
-            var isFcfs = (statusType === 'fcfs' || statusType === 'check');
+            var isFcfs = (statusType === 'fcfs' || statusType === 'check' || statusType === 'old');
             var badgeText = statusType === 'apt' ? "실시간 청약"
                           : statusType === 'fcfs' ? "선착순 계약 (잔여·마감 확인)"
+                          : statusType === 'old' ? "입주완료 · 매물/전월세 상담"
                           : "⚠️ 1년 경과·분양마감 확인필요";
             var badgeClass = statusType === 'apt' ? "badge-apt"
                            : statusType === 'fcfs' ? "badge-fcfs"
+                           : statusType === 'old' ? "badge-old"
                            : "badge-check";
             var descText = statusType === 'apt'
                 ? "접수: " + (apt.RCEPT_BGNDE || "-") + " ~ " + (apt.RCEPT_ENDDE || "-")
@@ -638,7 +781,7 @@
                 findAccurateCoords(name, rawAddr, function(coords) {
                     loadedCount++;
                     if (coords) {
-                        renderClickableMarker(coords, badgeText, badgeClass, name, descText, apt, isFcfs, rawAddr);
+                        renderClickableMarker(coords, badgeText, badgeClass, name, descText, apt, statusType, isFcfs, rawAddr);
                     }
                     applyFilters();
                 });
@@ -650,7 +793,7 @@
         document.getElementById('status').innerText = "API 연결 대기 중";
     });
 
-    function renderClickableMarker(position, badgeText, badgeClass, title, desc, aptData, isFcfs, rawAddr) {
+    function renderClickableMarker(position, badgeText, badgeClass, title, desc, aptData, statusType, isFcfs, rawAddr) {
         var regionMatch = matchRegion(rawAddr, currentRegion);
         var typeMatch = (currentFilter === 'all') ||
                         (currentFilter === 'fcfs' && isFcfs) ||
@@ -672,10 +815,10 @@
         `;
 
         content.onclick = function() {
-            openModal(aptData, isFcfs);
+            openModal(aptData, statusType);
         };
         kakao.maps.event.addListener(marker, 'click', function() {
-            openModal(aptData, isFcfs);
+            openModal(aptData, statusType);
         });
 
         var overlay = new kakao.maps.CustomOverlay({
