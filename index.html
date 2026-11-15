@@ -187,7 +187,7 @@
     </div>
 </div>
 
-<div id="status" class="status-badge">청약 데이터 연결 중...</div>
+<div id="status" class="status-badge">부산·경남 전수 데이터 수집 중...</div>
 <div id="map"></div>
 
 <div id="modalOverlay" class="modal-overlay" onclick="closeModal(event)">
@@ -213,7 +213,7 @@
     var totalTargetCount = 0;
     var loadedCount = 0;
 
-    // [누락 방지용 필수 추가 단지 리스트 - API 1000건 밖으로 밀린 주력 현장 고정 등록]
+    // [누락 방지용 필수 추가 단지 리스트]
     var mustIncludeList = [
         {
             HOUSE_NM: "에코델타시티 중흥S-클래스 에듀리버",
@@ -239,11 +239,11 @@
         }
     ];
 
-    // [위치 이탈 방지용 현장 정위치 고정 좌표 테이블 - 띄어쓰기/특수문자 무시 매칭]
+    // [위치 이탈 방지용 현장 정위치 고정 좌표 테이블 - 강동동 실제 블록 위치]
     var fixedCoordsMap = [
         { keywords: ["트라비스", "트래비스", "엄궁"], lat: 35.1268, lng: 128.9710 },
-        { keywords: ["에코델타시티아테라", "에코델타아테라", "아테라"], lat: 35.1481, lng: 128.9439 },
-        { keywords: ["트레파크", "트래파크", "에코델타시티트레파크", "에코델타트레파크"], lat: 35.1388, lng: 128.9452 },
+        { keywords: ["에코델타시티아테라", "에코델타아테라", "아테라"], lat: 35.1518, lng: 128.9431 },
+        { keywords: ["트레파크", "트래파크", "에코델타시티트레파크", "에코델타트레파크"], lat: 35.1432, lng: 128.9445 },
         { keywords: ["연제갤러리자이", "갤러리자이"], lat: 35.1862, lng: 129.0815 }
     ];
 
@@ -251,7 +251,6 @@
         return (str || "").replace(/[\s\-\(\)·]/g, "");
     }
 
-    // 주소 기반 권역 판별 함수
     function matchRegion(addr, regionType) {
         if (regionType === 'national') return true;
         if (!addr) return false;
@@ -262,11 +261,14 @@
                    clean.indexOf("울산") === 0 ||
                    clean.indexOf("경상남도") === 0 ||
                    clean.indexOf("경남") === 0 ||
-                   clean.indexOf("거제시") !== -1 ||
-                   clean.indexOf("창원시") !== -1 ||
-                   clean.indexOf("김해시") !== -1 ||
-                   clean.indexOf("양산시") !== -1 ||
-                   clean.indexOf("진주시") !== -1;
+                   clean.indexOf("거제") !== -1 ||
+                   clean.indexOf("창원") !== -1 ||
+                   clean.indexOf("김해") !== -1 ||
+                   clean.indexOf("양산") !== -1 ||
+                   clean.indexOf("진주") !== -1 ||
+                   clean.indexOf("통영") !== -1 ||
+                   clean.indexOf("사천") !== -1 ||
+                   clean.indexOf("밀양") !== -1;
         }
 
         if (regionType === 'seoul') {
@@ -279,7 +281,6 @@
         return true;
     }
 
-    // 지역 + 유형 통합 필터링 및 상태 카운트 갱신
     function applyFilters() {
         var visibleCount = 0;
         allMarkerItems.forEach(function(item) {
@@ -365,7 +366,6 @@
             .trim();
     }
 
-    // 구글 시트 담당자 관리 연동
     var sheetManagers = [];
     var SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9i0XauGTtL6JWFSjKx0trX6LAnw-_hvb6LV3YEe1RKWnZLSxyi2szhaYaHyrSqDj5rwdIZLuO53Vt/pub?gid=0&single=true&output=csv";
 
@@ -487,7 +487,7 @@
     function findAccurateCoords(name, rawAddr, callback) {
         var normName = normalizeName(name);
 
-        // 0순위: 공백/특수문자 제거 후 고정 좌표 강제 매핑
+        // 0순위: 현장 정위치 고정 좌표 강제 매핑
         for (var i = 0; i < fixedCoordsMap.length; i++) {
             var entry = fixedCoordsMap[i];
             for (var j = 0; j < entry.keywords.length; j++) {
@@ -498,7 +498,7 @@
             }
         }
 
-        // 에코델타시티 블록 표기 단지는 일반 키워드 검색 시 타 지역 유사 상호로 튈 수 있어 주소 검색 우선
+        // 에코델타시티 블록 표기 단지는 일반 키워드 검색 시 타 지역 유사 상호로 튀므로 주소 검색 우선
         var isEcoDelta = (normName.indexOf("에코델타") !== -1 || rawAddr.indexOf("강동동") !== -1 || rawAddr.indexOf("명지동") !== -1);
 
         if (isEcoDelta) {
@@ -507,7 +507,7 @@
                 if (addrStatus === kakao.maps.services.Status.OK) {
                     callback(new kakao.maps.LatLng(result[0].y, result[0].x));
                 } else {
-                    callback(new kakao.maps.LatLng(35.1325, 128.9410));
+                    callback(new kakao.maps.LatLng(35.1450, 128.9435));
                 }
             });
             return;
@@ -553,78 +553,100 @@
     }
 
     var serviceKey = "935de5c23598a914dd97149a0b92614db7f4de28d991d658d58dfaca03bad3a7";
-    var directUrl = "https://api.odcloud.kr/api/ApplyhomeInfoDetailSvc/v1/getAPTLttotPblancDetail?page=1&perPage=1000&serviceKey=" + encodeURIComponent(serviceKey);
+    var baseUrl = "https://api.odcloud.kr/api/ApplyhomeInfoDetailSvc/v1/getAPTLttotPblancDetail?perPage=1000&serviceKey=" + encodeURIComponent(serviceKey);
 
-    fetch(directUrl)
-        .then(function(res) {
-            if (!res.ok) throw new Error("API 응답 오류: " + res.status);
-            return res.json();
-        })
-        .then(function(data) {
-            var rawItems = (data && data.data) ? data.data : [];
-
-            // 1) 부산·울산·경남 지역 단지는 세대수 순위와 무관하게 100% 전부 보존
-            var busanGyeongnamItems = rawItems.filter(function(apt) {
-                return matchRegion(apt.HSSPLY_ADRES, 'busan');
-            });
-
-            // 2) 타 지역은 대단지 순으로 180건 추출 후 합산
-            var otherItems = rawItems
-                .filter(function(apt) {
-                    return !matchRegion(apt.HSSPLY_ADRES, 'busan');
-                })
-                .sort(function(a, b) {
-                    var scaleA = parseInt(a.TOT_SUPLY_HSHLDCO, 10) || 0;
-                    var scaleB = parseInt(b.TOT_SUPLY_HSHLDCO, 10) || 0;
-                    return scaleB - scaleA;
-                })
-                .slice(0, 180);
-
-            var items = busanGyeongnamItems.concat(otherItems);
-
-            var existingNames = new Set(items.map(function(i) { return normalizeName(i.HOUSE_NM); }));
-            mustIncludeList.forEach(function(extra) {
-                if (!existingNames.has(normalizeName(extra.HOUSE_NM))) {
-                    items.unshift(extra);
-                }
-            });
-
-            var validItems = items.filter(function(apt) { return !!apt.HSSPLY_ADRES; });
-            totalTargetCount = validItems.length;
-            document.getElementById('status').innerText = "분양 데이터 " + totalTargetCount + "건 로드 중...";
-
-            validItems.forEach(function(apt, idx) {
-                var name = apt.HOUSE_NM || "아파트명 미제공";
-                var rawAddr = apt.HSSPLY_ADRES;
-                var contractEnd = apt.CNTRCT_CNCLS_ENDDE || "";
-
-                var statusType = getAptStatus(contractEnd);
-                var isFcfs = (statusType === 'fcfs' || statusType === 'check');
-                var badgeText = statusType === 'apt' ? "실시간 청약"
-                              : statusType === 'fcfs' ? "선착순 계약 (잔여·마감 확인)"
-                              : "⚠️ 1년 경과·분양마감 확인필요";
-                var badgeClass = statusType === 'apt' ? "badge-apt"
-                               : statusType === 'fcfs' ? "badge-fcfs"
-                               : "badge-check";
-                var descText = statusType === 'apt'
-                    ? "접수: " + (apt.RCEPT_BGNDE || "-") + " ~ " + (apt.RCEPT_ENDDE || "-")
-                    : "정당계약 마감 (" + contractEnd + ")";
-
-                setTimeout(function() {
-                    findAccurateCoords(name, rawAddr, function(coords) {
-                        loadedCount++;
-                        if (coords) {
-                            renderClickableMarker(coords, badgeText, badgeClass, name, descText, apt, isFcfs, rawAddr);
-                        }
-                        applyFilters();
-                    });
-                }, idx * 120);
-            });
-        })
-        .catch(function(err) {
-            console.error(err);
-            document.getElementById('status').innerText = "API 연결 대기 중";
+    // 1~3페이지(최대 3,000건) 병렬 조회하여 부산·경남·울산 물량 전수 확보
+    Promise.all([
+        fetch(baseUrl + "&page=1").then(function(r) { return r.json(); }),
+        fetch(baseUrl + "&page=2").then(function(r) { return r.json(); }),
+        fetch(baseUrl + "&page=3").then(function(r) { return r.json(); })
+    ])
+    .then(function(results) {
+        var rawItems = [];
+        results.forEach(function(res) {
+            if (res && res.data) rawItems = rawItems.concat(res.data);
         });
+
+        // 중복 공고 제거
+        var seenPblanc = new Set();
+        var uniqueItems = rawItems.filter(function(apt) {
+            var key = apt.PBLANC_NO || (apt.HOUSE_NM + "_" + apt.RCRIT_PBLANC_DE);
+            if (seenPblanc.has(key)) return false;
+            seenPblanc.add(key);
+            return true;
+        });
+
+        // 1순위: 부산·경남·울산 전수 보존 (거제 현장 및 지역 전 단지 100% 확보)
+        var busanGyeongnamItems = uniqueItems.filter(function(apt) {
+            return matchRegion(apt.HSSPLY_ADRES, 'busan');
+        });
+
+        // 2순위: 수도권 대단지 위주 최대 100건
+        var seoulItems = uniqueItems
+            .filter(function(apt) {
+                return !matchRegion(apt.HSSPLY_ADRES, 'busan') && matchRegion(apt.HSSPLY_ADRES, 'seoul');
+            })
+            .sort(function(a, b) {
+                return (parseInt(b.TOT_SUPLY_HSHLDCO, 10) || 0) - (parseInt(a.TOT_SUPLY_HSHLDCO, 10) || 0);
+            })
+            .slice(0, 100);
+
+        // 3순위(후순위): 강원·전남·충청 등 기타 지방은 대단지 상위 40건만 후순위 배치
+        var etcItems = uniqueItems
+            .filter(function(apt) {
+                return !matchRegion(apt.HSSPLY_ADRES, 'busan') && !matchRegion(apt.HSSPLY_ADRES, 'seoul');
+            })
+            .sort(function(a, b) {
+                return (parseInt(b.TOT_SUPLY_HSHLDCO, 10) || 0) - (parseInt(a.TOT_SUPLY_HSHLDCO, 10) || 0);
+            })
+            .slice(0, 40);
+
+        // 부산·경남을 맨 앞에 두어 지도 로딩 즉시 1순위로 찍히도록 배치
+        var items = busanGyeongnamItems.concat(seoulItems).concat(etcItems);
+
+        var existingNames = new Set(items.map(function(i) { return normalizeName(i.HOUSE_NM); }));
+        mustIncludeList.forEach(function(extra) {
+            if (!existingNames.has(normalizeName(extra.HOUSE_NM))) {
+                items.unshift(extra);
+            }
+        });
+
+        var validItems = items.filter(function(apt) { return !!apt.HSSPLY_ADRES; });
+        totalTargetCount = validItems.length;
+        document.getElementById('status').innerText = "부산·경남 우선 " + totalTargetCount + "건 로드 중...";
+
+        validItems.forEach(function(apt, idx) {
+            var name = apt.HOUSE_NM || "아파트명 미제공";
+            var rawAddr = apt.HSSPLY_ADRES;
+            var contractEnd = apt.CNTRCT_CNCLS_ENDDE || "";
+
+            var statusType = getAptStatus(contractEnd);
+            var isFcfs = (statusType === 'fcfs' || statusType === 'check');
+            var badgeText = statusType === 'apt' ? "실시간 청약"
+                          : statusType === 'fcfs' ? "선착순 계약 (잔여·마감 확인)"
+                          : "⚠️ 1년 경과·분양마감 확인필요";
+            var badgeClass = statusType === 'apt' ? "badge-apt"
+                           : statusType === 'fcfs' ? "badge-fcfs"
+                           : "badge-check";
+            var descText = statusType === 'apt'
+                ? "접수: " + (apt.RCEPT_BGNDE || "-") + " ~ " + (apt.RCEPT_ENDDE || "-")
+                : "정당계약 마감 (" + contractEnd + ")";
+
+            setTimeout(function() {
+                findAccurateCoords(name, rawAddr, function(coords) {
+                    loadedCount++;
+                    if (coords) {
+                        renderClickableMarker(coords, badgeText, badgeClass, name, descText, apt, isFcfs, rawAddr);
+                    }
+                    applyFilters();
+                });
+            }, idx * 100);
+        });
+    })
+    .catch(function(err) {
+        console.error(err);
+        document.getElementById('status').innerText = "API 연결 대기 중";
+    });
 
     function renderClickableMarker(position, badgeText, badgeClass, title, desc, aptData, isFcfs, rawAddr) {
         var regionMatch = matchRegion(rawAddr, currentRegion);
