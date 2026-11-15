@@ -199,7 +199,7 @@
     </div>
 </div>
 
-<div id="status" class="status-badge">최근 4년 분양 데이터 수집 중...</div>
+<div id="status" class="status-badge">실시간 분양 데이터 수집 중...</div>
 <div id="map"></div>
 
 <div id="modalOverlay" class="modal-overlay" onclick="closeModal(event)">
@@ -251,22 +251,23 @@
         }
     ];
 
-    // [실측 완료: 부산 강서구(명지·에코델타시티) 14개 현장 정위치 고정 좌표 테이블]
+    // [실측 완료: 부산 강서구(명지·에코델타시티) 14개 현장 최신 정위치 고정 좌표]
+    // ※ 숫자 충돌(2블록 vs 12블록 등)을 막기 위해 구체적인 블록명/단지명 순서로 배치
     var gangseoExactCoords = [
-        { keywords: ["센트럴파크3", "A2블록", "A2BL"], lat: 35.103514, lng: 128.922287 },
+        { keywords: ["센트럴파크3", "금강펜테리움센트럴파크3", "A2블록", "A2BL"], lat: 35.103514, lng: 128.922287 },
         { keywords: ["부산명지행복주택", "명지행복주택"], lat: 35.089513, lng: 128.898588 },
         { keywords: ["16블록", "16BL"], lat: 35.152946, lng: 128.915357 },
-        { keywords: ["4블록", "4BL", "에듀리버"], lat: 35.156640, lng: 128.907400 },
-        { keywords: ["2블록", "2BL", "리버시티"], lat: 35.156571, lng: 128.907497 },
-        { keywords: ["24BL", "24블록", "아테라"], lat: 35.149952, lng: 128.919467 },
-        { keywords: ["7BL", "7블록", "호반써밋", "호반"], lat: 35.140019, lng: 128.931477 },
-        { keywords: ["17BL", "17블록", "대성베르힐"], lat: 35.149880, lng: 128.915773 },
-        { keywords: ["28BL", "28블록", "디에트르더퍼스트", "디에트르"], lat: 35.149797, lng: 128.922420 },
-        { keywords: ["11BL", "11블록", "트레파크", "트래파크"], lat: 35.152678, lng: 128.911186 },
-        { keywords: ["대방엘리움", "엘리움리버뷰", "31BL", "31블록"], lat: 35.140561, lng: 128.927414 },
-        { keywords: ["푸르지오마린", "마린", "27BL", "27블록"], lat: 35.141390, lng: 128.919217 },
-        { keywords: ["강서자이", "20BL", "20블록"], lat: 35.142429, lng: 128.915028 },
-        { keywords: ["수자인", "한양수자인", "21BL", "21블록"], lat: 35.139678, lng: 128.915775 }
+        { keywords: ["에듀리버", "4블록", "4BL"], lat: 35.156640, lng: 128.907400 },
+        { keywords: ["리버시티", "2블록", "2BL"], lat: 35.156571, lng: 128.907497 },
+        { keywords: ["아테라", "24블록", "24BL"], lat: 35.149952, lng: 128.919467 },
+        { keywords: ["호반써밋", "7블록", "7BL"], lat: 35.138334, lng: 128.907296 },
+        { keywords: ["대성베르힐", "17블록", "17BL"], lat: 35.149888, lng: 128.915784 },
+        { keywords: ["디에트르더퍼스트", "28블록", "28BL"], lat: 35.149797, lng: 128.922420 },
+        { keywords: ["트레파크", "트래파크", "11블록", "11BL"], lat: 35.152678, lng: 128.911186 },
+        { keywords: ["대방엘리움", "엘리움리버뷰", "31블록", "31BL"], lat: 35.140561, lng: 128.927414 },
+        { keywords: ["푸르지오린", "27블록", "27BL"], lat: 35.141408, lng: 128.919195 },
+        { keywords: ["강서자이", "20블록", "20BL"], lat: 35.142429, lng: 128.915028 },
+        { keywords: ["수자인", "한양수자인", "21블록", "21BL"], lat: 35.139678, lng: 128.915775 }
     ];
 
     // [공고명 속 지명 키워드 -> 실제 행정구역 강제 검증 및 교정 테이블]
@@ -317,31 +318,18 @@
         return (str || "").replace(/[\s\-\(\)·]/g, "");
     }
 
-    function getTodayString() {
+    function getDateYearsAgo(years) {
         var now = new Date();
+        now.setFullYear(now.getFullYear() - years);
         var y = now.getFullYear();
         var m = String(now.getMonth() + 1).padStart(2, '0');
         var d = String(now.getDate()).padStart(2, '0');
         return `${y}-${m}-${d}`;
     }
-    var todayStr = getTodayString();
 
-    // [현재 시점 기준 정확히 4년 전 기준일 계산]
-    function getFourYearsAgoString() {
-        var now = new Date();
-        now.setFullYear(now.getFullYear() - 4);
-        var y = now.getFullYear();
-        var m = String(now.getMonth() + 1).padStart(2, '0');
-        var d = String(now.getDate()).padStart(2, '0');
-        return `${y}-${m}-${d}`;
-    }
-    var fourYearsAgoStr = getFourYearsAgoString();
-
-    function isWithinFourYears(apt) {
-        var refDate = apt.CNTRCT_CNCLS_ENDDE || apt.RCEPT_ENDDE || apt.RCRIT_PBLANC_DE || "";
-        if (!refDate || refDate === "-") return true;
-        return refDate >= fourYearsAgoStr;
-    }
+    var todayStr = getDateYearsAgo(0);
+    var twoYearsAgoStr = getDateYearsAgo(2);
+    var fourYearsAgoStr = getDateYearsAgo(4);
 
     function matchRegion(addr, regionType) {
         if (regionType === 'national') return true;
@@ -373,6 +361,47 @@
         return true;
     }
 
+    function isGangwonOrJeonnam(addr) {
+        if (!addr) return false;
+        var clean = addr.trim();
+        return clean.indexOf("강원") === 0 || clean.indexOf("전라남도") === 0 || clean.indexOf("전남") === 0;
+    }
+
+    function getAptStatus(contractEndStr) {
+        if (!contractEndStr || contractEndStr >= todayStr) return 'apt';
+        var today = new Date(todayStr);
+        var endDate = new Date(contractEndStr);
+        var diffDays = (today - endDate) / (1000 * 60 * 60 * 24);
+        if (diffDays <= 365) return 'fcfs';
+        if (diffDays < 1095) return 'check';
+        return 'old';
+    }
+
+    // [지역별 차등 노출 규칙]
+    // 1. 부산·울산·경남: 최근 4년 이내 전체 노출
+    // 2. 강원·전남: 실시간 청약(신규)만 노출
+    // 3. 그 외 전국(수도권·충청·전북·경북·제주 등): 청약일 기준 2년 이내 분양현장만 노출
+    function shouldIncludeByRegionRule(apt) {
+        var addr = apt.HSSPLY_ADRES || "";
+        var refDate = apt.RCEPT_BGNDE || apt.CNTRCT_CNCLS_ENDDE || apt.RCRIT_PBLANC_DE || "";
+        var statusType = getAptStatus(apt.CNTRCT_CNCLS_ENDDE || "");
+
+        // 1) 부산·울산·경남: 4년 이내 전체
+        if (matchRegion(addr, 'busan')) {
+            if (!refDate || refDate === "-") return true;
+            return refDate >= fourYearsAgoStr;
+        }
+
+        // 2) 강원·전남: 신규(실시간 청약)만 표시
+        if (isGangwonOrJeonnam(addr)) {
+            return statusType === 'apt';
+        }
+
+        // 3) 부산·경남 외 타 지역: 청약 시작/공고 기준 2년 이내 분양현장만 표시
+        if (!refDate || refDate === "-") return true;
+        return refDate >= twoYearsAgoStr;
+    }
+
     function applyFilters() {
         var visibleCount = 0;
         allMarkerItems.forEach(function(item) {
@@ -393,9 +422,9 @@
                         : '전국';
 
         if (loadedCount < totalTargetCount) {
-            document.getElementById('status').innerText = regionLabel + " (4년이내): " + visibleCount + "곳 (로딩 중...)";
+            document.getElementById('status').innerText = regionLabel + " 표시: " + visibleCount + "곳 (로딩 중...)";
         } else {
-            document.getElementById('status').innerText = regionLabel + " (4년이내): " + visibleCount + "곳";
+            document.getElementById('status').innerText = regionLabel + " 표시: " + visibleCount + "곳";
         }
     }
 
@@ -430,16 +459,6 @@
         applyFilters();
     }
 
-    function getAptStatus(contractEndStr) {
-        if (!contractEndStr || contractEndStr >= todayStr) return 'apt';
-        var today = new Date(todayStr);
-        var endDate = new Date(contractEndStr);
-        var diffDays = (today - endDate) / (1000 * 60 * 60 * 24);
-        if (diffDays <= 365) return 'fcfs';
-        if (diffDays < 1095) return 'check';
-        return 'old';
-    }
-
     function cleanAddress(rawAddr) {
         if (!rawAddr) return "";
         return rawAddr
@@ -452,6 +471,7 @@
             .trim();
     }
 
+    // [구글 시트 연동: 담당자 정보 + H열(위도), I열(경도) 직접 좌표 지원]
     var sheetManagers = [];
     var SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9i0XauGTtL6JWFSjKx0trX6LAnw-_hvb6LV3YEe1RKWnZLSxyi2szhaYaHyrSqDj5rwdIZLuO53Vt/pub?gid=0&single=true&output=csv";
 
@@ -469,6 +489,9 @@
                     var kakao = (cols[4] || "").replace(/^"|"$/g, "").trim();
                     var status = (cols[5] || "").replace(/^"|"$/g, "").trim().toUpperCase();
                     var endDate = (cols[6] || "").replace(/^"|"$/g, "").trim();
+                    var customLat = parseFloat((cols[7] || "").replace(/^"|"$/g, "").trim());
+                    var customLng = parseFloat((cols[8] || "").replace(/^"|"$/g, "").trim());
+
                     if (keyword && status === "ON") {
                         sheetManagers.push({
                             keyword: keyword,
@@ -476,7 +499,9 @@
                             managerName: managerName,
                             phone: phone,
                             kakao: kakao,
-                            endDate: endDate
+                            endDate: endDate,
+                            customLat: !isNaN(customLat) ? customLat : null,
+                            customLng: !isNaN(customLng) ? customLng : null
                         });
                     }
                 }
@@ -631,14 +656,21 @@
         var combinedText = normName + "_" + normalizeName(rawAddr);
         var hint = detectTitleRegionHint(name);
 
-        // 0순위-1: 엄궁 트라비스 예외 고정
+        // 0순위-A: 구글 시트에 직접 위도(H열)·경도(I열)가 입력된 경우 최우선 적용
+        var assigned = getAssignedManager(name);
+        if (assigned && assigned.customLat && assigned.customLng) {
+            callback(new kakao.maps.LatLng(assigned.customLat, assigned.customLng));
+            return;
+        }
+
+        // 0순위-B: 엄궁 트라비스 예외 고정
         if (normName.indexOf("트라비스") !== -1 || normName.indexOf("트래비스") !== -1) {
             callback(new kakao.maps.LatLng(35.1268, 128.9710));
             return;
         }
 
-        // 0순위-2: 부산 강서구(명지·에코델타시티) 실측 좌표 14곳 정위치 매핑
-        if (!hint && (rawAddr.indexOf("강서구") !== -1 || normName.indexOf("에코델타") !== -1 || normName.indexOf("부산명지") !== -1)) {
+        // 0순위-C: 부산 강서구(명지·에코델타시티) 실측 좌표 14곳 정밀 1:1 매핑
+        if (!hint && (rawAddr.indexOf("강서구") !== -1 || normName.indexOf("에코델타") !== -1 || normName.indexOf("부산명지") !== -1 || normName.indexOf("명지국제") !== -1)) {
             for (var i = 0; i < gangseoExactCoords.length; i++) {
                 var entry = gangseoExactCoords[i];
                 for (var j = 0; j < entry.keywords.length; j++) {
@@ -711,17 +743,19 @@
 
         var seenPblanc = new Set();
         var uniqueItems = rawItems.filter(function(apt) {
-            if (!isWithinFourYears(apt)) return false;
+            if (!shouldIncludeByRegionRule(apt)) return false;
             var key = apt.PBLANC_NO || (apt.HOUSE_NM + "_" + apt.RCRIT_PBLANC_DE);
             if (seenPblanc.has(key)) return false;
             seenPblanc.add(key);
             return true;
         });
 
+        // 1순위: 부산·울산·경남 (4년 이내 전수)
         var busanGyeongnamItems = uniqueItems.filter(function(apt) {
             return matchRegion(apt.HSSPLY_ADRES, 'busan');
         });
 
+        // 2순위: 수도권 (2년 이내 분양현장 최대 80건)
         var seoulItems = uniqueItems
             .filter(function(apt) {
                 return !matchRegion(apt.HSSPLY_ADRES, 'busan') && matchRegion(apt.HSSPLY_ADRES, 'seoul');
@@ -729,8 +763,9 @@
             .sort(function(a, b) {
                 return (parseInt(b.TOT_SUPLY_HSHLDCO, 10) || 0) - (parseInt(a.TOT_SUPLY_HSHLDCO, 10) || 0);
             })
-            .slice(0, 100);
+            .slice(0, 80);
 
+        // 3순위: 기타 지방 (강원·전남은 신규만, 나머지는 2년 이내 분양현장 상위 40건)
         var etcItems = uniqueItems
             .filter(function(apt) {
                 return !matchRegion(apt.HSSPLY_ADRES, 'busan') && !matchRegion(apt.HSSPLY_ADRES, 'seoul');
@@ -744,14 +779,14 @@
 
         var existingNames = new Set(items.map(function(i) { return normalizeName(i.HOUSE_NM); }));
         mustIncludeList.forEach(function(extra) {
-            if (isWithinFourYears(extra) && !existingNames.has(normalizeName(extra.HOUSE_NM))) {
+            if (shouldIncludeByRegionRule(extra) && !existingNames.has(normalizeName(extra.HOUSE_NM))) {
                 items.unshift(extra);
             }
         });
 
         var validItems = items.filter(function(apt) { return !!apt.HSSPLY_ADRES; });
         totalTargetCount = validItems.length;
-        document.getElementById('status').innerText = "최근 4년 " + totalTargetCount + "건 로드 중...";
+        document.getElementById('status').innerText = "전국 맞춤형 " + totalTargetCount + "건 로드 중...";
 
         validItems.forEach(function(apt, idx) {
             var name = apt.HOUSE_NM || "아파트명 미제공";
@@ -780,7 +815,7 @@
                     }
                     applyFilters();
                 });
-            }, idx * 100);
+            }, idx * 85);
         });
     })
     .catch(function(err) {
