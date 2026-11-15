@@ -225,7 +225,7 @@
     var totalTargetCount = 0;
     var loadedCount = 0;
 
-    // [누락 방지용 필수 추가 단지 리스트]
+    // [누락 방지용 필수 추가 단지 리스트 - API 범위 밖 및 핵심 보완 현장]
     var mustIncludeList = [
         {
             HOUSE_NM: "에코델타시티 중흥S-클래스 에듀리버",
@@ -237,6 +237,39 @@
             CNTRCT_CNCLS_BGNDE: "2025-06-09",
             CNTRCT_CNCLS_ENDDE: "2025-06-11",
             BSNS_MBY_NM: "중흥토건(주)"
+        },
+        {
+            HOUSE_NM: "에코델타시티 푸르지오 린",
+            HSSPLY_ADRES: "부산광역시 강서구 강동동 일원 (에코델타시티 27BL)",
+            TOT_SUPLY_HSHLDCO: "886",
+            RCEPT_BGNDE: "2023-02-20",
+            RCEPT_ENDDE: "2023-02-22",
+            PRZWNER_PRESN_DATE: "2023-02-28",
+            CNTRCT_CNCLS_BGNDE: "2023-03-13",
+            CNTRCT_CNCLS_ENDDE: "2023-03-16",
+            BSNS_MBY_NM: "(주)대우건설·우미건설(주)"
+        },
+        {
+            HOUSE_NM: "강서자이 에코델타",
+            HSSPLY_ADRES: "부산광역시 강서구 강동동 일원 (에코델타시티 20BL)",
+            TOT_SUPLY_HSHLDCO: "856",
+            RCEPT_BGNDE: "2022-06-07",
+            RCEPT_ENDDE: "2022-06-09",
+            PRZWNER_PRESN_DATE: "2022-06-16",
+            CNTRCT_CNCLS_BGNDE: "2022-06-27",
+            CNTRCT_CNCLS_ENDDE: "2022-07-02",
+            BSNS_MBY_NM: "GS건설(주)"
+        },
+        {
+            HOUSE_NM: "에코델타시티 한양수자인",
+            HSSPLY_ADRES: "부산광역시 강서구 강동동 일원 (에코델타시티 21BL)",
+            TOT_SUPLY_HSHLDCO: "554",
+            RCEPT_BGNDE: "2021-11-22",
+            RCEPT_ENDDE: "2021-11-24",
+            PRZWNER_PRESN_DATE: "2021-12-01",
+            CNTRCT_CNCLS_BGNDE: "2021-12-13",
+            CNTRCT_CNCLS_ENDDE: "2021-12-17",
+            BSNS_MBY_NM: "(주)한양"
         },
         {
             HOUSE_NM: "연제 갤러리자이",
@@ -252,15 +285,15 @@
     ];
 
     // [실측 완료: 부산 강서구(명지·에코델타시티) 14개 현장 최신 정위치 고정 좌표]
-    // ※ 숫자 충돌(2블록 vs 12블록 등)을 막기 위해 구체적인 블록명/단지명 순서로 배치
+    // ※ 숫자 겹침 방지를 위해 '2블록', '4블록', '7블록' 같은 한 자리 숫자 키워드는 배제하고 고유 단지명과 두 자리 블록명만 사용
     var gangseoExactCoords = [
         { keywords: ["센트럴파크3", "금강펜테리움센트럴파크3", "A2블록", "A2BL"], lat: 35.103514, lng: 128.922287 },
         { keywords: ["부산명지행복주택", "명지행복주택"], lat: 35.089513, lng: 128.898588 },
         { keywords: ["16블록", "16BL"], lat: 35.152946, lng: 128.915357 },
-        { keywords: ["에듀리버", "4블록", "4BL"], lat: 35.156640, lng: 128.907400 },
-        { keywords: ["리버시티", "2블록", "2BL"], lat: 35.156571, lng: 128.907497 },
-        { keywords: ["아테라", "24블록", "24BL"], lat: 35.149952, lng: 128.919467 },
-        { keywords: ["호반써밋", "7블록", "7BL"], lat: 35.138334, lng: 128.907296 },
+        { keywords: ["에듀리버"], lat: 35.153298, lng: 128.907893 },
+        { keywords: ["리버시티"], lat: 35.156589, lng: 128.907470 },
+        { keywords: ["아테라", "24블록", "24BL"], lat: 35.149951, lng: 128.919489 },
+        { keywords: ["호반써밋", "호반"], lat: 35.138334, lng: 128.907296 },
         { keywords: ["대성베르힐", "17블록", "17BL"], lat: 35.149888, lng: 128.915784 },
         { keywords: ["디에트르더퍼스트", "28블록", "28BL"], lat: 35.149797, lng: 128.922420 },
         { keywords: ["트레파크", "트래파크", "11블록", "11BL"], lat: 35.152678, lng: 128.911186 },
@@ -329,7 +362,7 @@
 
     var todayStr = getDateYearsAgo(0);
     var twoYearsAgoStr = getDateYearsAgo(2);
-    var fourYearsAgoStr = getDateYearsAgo(4);
+    var fiveYearsAgoStr = getDateYearsAgo(5);
 
     function matchRegion(addr, regionType) {
         if (regionType === 'national') return true;
@@ -378,7 +411,7 @@
     }
 
     // [지역별 차등 노출 규칙]
-    // 1. 부산·울산·경남: 최근 4년 이내 전체 노출
+    // 1. 부산·울산·경남: 최근 5년 이내 전체 노출 (강서자이·수자인·푸르지오린 포함 누락 방지)
     // 2. 강원·전남: 실시간 청약(신규)만 노출
     // 3. 그 외 전국(수도권·충청·전북·경북·제주 등): 청약일 기준 2년 이내 분양현장만 노출
     function shouldIncludeByRegionRule(apt) {
@@ -386,10 +419,10 @@
         var refDate = apt.RCEPT_BGNDE || apt.CNTRCT_CNCLS_ENDDE || apt.RCRIT_PBLANC_DE || "";
         var statusType = getAptStatus(apt.CNTRCT_CNCLS_ENDDE || "");
 
-        // 1) 부산·울산·경남: 4년 이내 전체
+        // 1) 부산·울산·경남: 5년 이내 전체
         if (matchRegion(addr, 'busan')) {
             if (!refDate || refDate === "-") return true;
-            return refDate >= fourYearsAgoStr;
+            return refDate >= fiveYearsAgoStr;
         }
 
         // 2) 강원·전남: 신규(실시간 청약)만 표시
@@ -669,7 +702,7 @@
             return;
         }
 
-        // 0순위-C: 부산 강서구(명지·에코델타시티) 실측 좌표 14곳 정밀 1:1 매핑
+        // 0순위-C: 부산 강서구(명지·에코델타시티) 실측 좌표 14곳 정밀 매핑
         if (!hint && (rawAddr.indexOf("강서구") !== -1 || normName.indexOf("에코델타") !== -1 || normName.indexOf("부산명지") !== -1 || normName.indexOf("명지국제") !== -1)) {
             for (var i = 0; i < gangseoExactCoords.length; i++) {
                 var entry = gangseoExactCoords[i];
@@ -750,7 +783,7 @@
             return true;
         });
 
-        // 1순위: 부산·울산·경남 (4년 이내 전수)
+        // 1순위: 부산·울산·경남 (5년 이내 전수)
         var busanGyeongnamItems = uniqueItems.filter(function(apt) {
             return matchRegion(apt.HSSPLY_ADRES, 'busan');
         });
@@ -779,7 +812,7 @@
 
         var existingNames = new Set(items.map(function(i) { return normalizeName(i.HOUSE_NM); }));
         mustIncludeList.forEach(function(extra) {
-            if (shouldIncludeByRegionRule(extra) && !existingNames.has(normalizeName(extra.HOUSE_NM))) {
+            if (!existingNames.has(normalizeName(extra.HOUSE_NM))) {
                 items.unshift(extra);
             }
         });
