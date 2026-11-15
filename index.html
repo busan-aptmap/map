@@ -213,7 +213,7 @@
     var totalTargetCount = 0;
     var loadedCount = 0;
 
-    // [누락 방지용 필수 추가 단지 리스트]
+    // [누락 방지용 필수 추가 단지 리스트 - API 범위 밖 주력 현장]
     var mustIncludeList = [
         {
             HOUSE_NM: "에코델타시티 중흥S-클래스 에듀리버",
@@ -228,7 +228,7 @@
         },
         {
             HOUSE_NM: "연제 갤러리자이",
-            HSSPLY_ADRES: "부산광역시 연제구 연산동",
+            HSSPLY_ADRES: "부산광역시 연제구 연산동 1124-2",
             TOT_SUPLY_HSHLDCO: "-",
             RCEPT_BGNDE: "-",
             RCEPT_ENDDE: "-",
@@ -239,15 +239,14 @@
         }
     ];
 
-    // [위치 이탈 방지용 현장 정위치 고정 좌표 테이블]
-    // ※ addrMustInclude 조건을 추가해 김해·장안·타지역 동일 브랜드가 에코델타시티로 끌려오는 현상을 원천 차단
-    var fixedCoordsMap = [
-        { addrMustInclude: "사상구", keywords: ["트라비스", "트래비스", "엄궁"], lat: 35.1268, lng: 128.9710 },
-        { addrMustInclude: "강서구", keywords: ["에코델타시티아테라", "에코델타아테라", "아테라"], lat: 35.1415, lng: 128.9235 },
-        { addrMustInclude: "강서구", keywords: ["에코델타시티트레파크", "에코델타트레파크", "트레파크", "트래파크"], lat: 35.1372, lng: 128.9268 },
-        { addrMustInclude: "강서구", keywords: ["에코델타시티디에트르", "디에트르"], lat: 35.1318, lng: 128.9225 },
-        { addrMustInclude: "강서구", keywords: ["에코델타시티호반", "호반써밋"], lat: 35.1295, lng: 128.9255 },
-        { addrMustInclude: "강서구", keywords: ["에코델타시티대성베르힐", "대성베르힐"], lat: 35.1392, lng: 128.9218 }
+    // [에코델타시티 블록별 실제 위경도 매핑 - 오직 부산 강서구 주소일 때만 작동]
+    var ecoDeltaBlockCoords = [
+        { keywords: ["24BL", "아테라"], lat: 35.1415, lng: 128.9235 },
+        { keywords: ["11BL", "트레파크", "트래파크"], lat: 35.1372, lng: 128.9268 },
+        { keywords: ["4BL", "에듀리버"], lat: 35.1398, lng: 128.9242 },
+        { keywords: ["디에트르", "28BL", "13BL"], lat: 35.1318, lng: 128.9225 },
+        { keywords: ["호반", "7BL"], lat: 35.1295, lng: 128.9255 },
+        { keywords: ["대성베르힐", "17BL"], lat: 35.1392, lng: 128.9218 }
     ];
 
     function normalizeName(str) {
@@ -364,6 +363,7 @@
             .replace(/\(.*?\)/g, '')
             .replace(/외\s*\d+.*$/g, '')
             .replace(/일원.*$/g, '')
+            .replace(/[\d\-]+BL.*$/gi, '')
             .replace(/BL.*$/gi, '')
             .replace(/로트.*$/gi, '')
             .trim();
@@ -487,44 +487,60 @@
         document.getElementById('modalOverlay').style.display = 'none';
     }
 
+    // [재설계된 정위치 좌표 검색 로직]
+    // 1순위: 엄궁 트라비스 / 강서구 에코델타시티 블록 전용 매핑
+    // 2순위: 공급위치 정식 주소 지오코딩 (초량, 김해, 장안, 연제 등 100% 실제 지번 위치로 직행)
+    // 3순위: 주소 지오코딩 실패 시에만 카카오 장소 검색(상호) 보조 실행
     function findAccurateCoords(name, rawAddr, callback) {
         var normName = normalizeName(name);
+        var combinedText = normName + "_" + normalizeName(rawAddr);
 
-        // 0순위: 공급위치(시/구)가 정확히 일치할 때만 현장 고정 좌표 적용 (김해·장안 오매칭 원천 차단)
-        for (var i = 0; i < fixedCoordsMap.length; i++) {
-            var entry = fixedCoordsMap[i];
-            if (entry.addrMustInclude && rawAddr.indexOf(entry.addrMustInclude) === -1) {
-                continue;
-            }
-            for (var j = 0; j < entry.keywords.length; j++) {
-                if (normName.indexOf(entry.keywords[j]) !== -1) {
-                    callback(new kakao.maps.LatLng(entry.lat, entry.lng));
-                    return;
+        // 엄궁 트라비스 예외 고정
+        if (rawAddr.indexOf("사상구") !== -1 && (normName.indexOf("트라비스") !== -1 || normName.indexOf("트래비스") !== -1)) {
+            callback(new kakao.maps.LatLng(35.1268, 128.9710));
+            return;
+        }
+
+        // 강서구 에코델타시티 블록 전용 매핑 (타 지역 주소는 절대 진입 불가)
+        if (rawAddr.indexOf("강서구") !== -1 && (rawAddr.indexOf("강동동") !== -1 || normName.indexOf("에코델타") !== -1)) {
+            for (var i = 0; i < ecoDeltaBlockCoords.length; i++) {
+                var block = ecoDeltaBlockCoords[i];
+                for (var j = 0; j < block.keywords.length; j++) {
+                    if (combinedText.indexOf(block.keywords[j]) !== -1) {
+                        callback(new kakao.maps.LatLng(block.lat, block.lng));
+                        return;
+                    }
                 }
             }
         }
 
-        // 1순위: 카카오 키워드 검색 (김해 현장, 기장 장안 현장 등 모든 일반 단지 실제 위치 검색)
-        var regionPrefix = rawAddr.split(" ").slice(0, 2).join(" ");
-        var keyword = regionPrefix + " " + name;
-
-        places.keywordSearch(keyword, function(data, status) {
-            var filtered = (status === kakao.maps.services.Status.OK)
-                ? data.filter(function(item) {
-                    var pName = item.place_name || "";
-                    return pName.indexOf("모델하우스") === -1 &&
-                           pName.indexOf("견본주택") === -1 &&
-                           pName.indexOf("홍보관") === -1;
-                })
-                : [];
-
-            if (filtered.length > 0) {
-                callback(new kakao.maps.LatLng(filtered[0].y, filtered[0].x));
+        // 2순위 (핵심): 공급위치 정식 지번/도로명 주소로 직접 좌표 변환
+        // 상호 검색을 먼저 하지 않으므로 초량·김해·장안 현장이 강서구 홍보관으로 빨려 들어가는 원천 차단
+        var searchAddr = cleanAddress(rawAddr);
+        geocoder.addressSearch(searchAddr, function(result, addrStatus) {
+            if (addrStatus === kakao.maps.services.Status.OK) {
+                callback(new kakao.maps.LatLng(result[0].y, result[0].x));
             } else {
-                var searchAddr = cleanAddress(rawAddr);
-                geocoder.addressSearch(searchAddr, function(result, addrStatus) {
-                    if (addrStatus === kakao.maps.services.Status.OK) {
-                        callback(new kakao.maps.LatLng(result[0].y, result[0].x));
+                // 3순위: 상세 번지 인식 실패 시 카카오 키워드 검색(동일 시/군/구 내부 검증 필수)
+                var regionPrefix = rawAddr.split(" ").slice(0, 2).join(" ");
+                var keyword = regionPrefix + " " + name;
+
+                places.keywordSearch(keyword, function(data, status) {
+                    var filtered = (status === kakao.maps.services.Status.OK)
+                        ? data.filter(function(item) {
+                            var pName = item.place_name || "";
+                            var pAddr = item.address_name || "";
+                            var sameRegion = regionPrefix ? (pAddr.indexOf(regionPrefix.split(" ")[1] || "") !== -1) : true;
+                            return sameRegion &&
+                                   pName.indexOf("모델하우스") === -1 &&
+                                   pName.indexOf("견본주택") === -1 &&
+                                   pName.indexOf("홍보관") === -1 &&
+                                   pName.indexOf("분양사무소") === -1;
+                        })
+                        : [];
+
+                    if (filtered.length > 0) {
+                        callback(new kakao.maps.LatLng(filtered[0].y, filtered[0].x));
                     } else {
                         var shortAddr = searchAddr.split(" ").slice(0, 3).join(" ");
                         if (shortAddr) {
@@ -547,7 +563,6 @@
     var serviceKey = "935de5c23598a914dd97149a0b92614db7f4de28d991d658d58dfaca03bad3a7";
     var baseUrl = "https://api.odcloud.kr/api/ApplyhomeInfoDetailSvc/v1/getAPTLttotPblancDetail?perPage=1000&serviceKey=" + encodeURIComponent(serviceKey);
 
-    // 1~3페이지(최대 3,000건) 병렬 조회하여 부산·경남·울산 물량 전수 확보
     Promise.all([
         fetch(baseUrl + "&page=1").then(function(r) { return r.json(); }),
         fetch(baseUrl + "&page=2").then(function(r) { return r.json(); }),
@@ -567,12 +582,10 @@
             return true;
         });
 
-        // 1순위: 부산·경남·울산 전수 보존
         var busanGyeongnamItems = uniqueItems.filter(function(apt) {
             return matchRegion(apt.HSSPLY_ADRES, 'busan');
         });
 
-        // 2순위: 수도권 대단지 위주 최대 100건
         var seoulItems = uniqueItems
             .filter(function(apt) {
                 return !matchRegion(apt.HSSPLY_ADRES, 'busan') && matchRegion(apt.HSSPLY_ADRES, 'seoul');
@@ -582,7 +595,6 @@
             })
             .slice(0, 100);
 
-        // 3순위(후순위): 기타 지방 대단지 상위 40건
         var etcItems = uniqueItems
             .filter(function(apt) {
                 return !matchRegion(apt.HSSPLY_ADRES, 'busan') && !matchRegion(apt.HSSPLY_ADRES, 'seoul');
