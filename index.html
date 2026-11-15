@@ -251,8 +251,7 @@
         }
     ];
 
-    // [대표님 실측 완료: 부산 강서구(명지·에코델타시티) 11개 현장 정위치 고정 좌표 테이블]
-    // ※ 공급위치 주소에 "강서구"가 포함된 경우에만 매칭되므로 타 지역(김해·장안·초량)에 절대 간섭하지 않음
+    // [실측 완료: 부산 강서구(명지·에코델타시티) 14개 현장 정위치 고정 좌표 테이블]
     var gangseoExactCoords = [
         { keywords: ["센트럴파크3", "A2블록", "A2BL"], lat: 35.103514, lng: 128.922287 },
         { keywords: ["부산명지행복주택", "명지행복주택"], lat: 35.089513, lng: 128.898588 },
@@ -261,10 +260,13 @@
         { keywords: ["2블록", "2BL", "리버시티"], lat: 35.156571, lng: 128.907497 },
         { keywords: ["24BL", "24블록", "아테라"], lat: 35.149952, lng: 128.919467 },
         { keywords: ["7BL", "7블록", "호반써밋", "호반"], lat: 35.140019, lng: 128.931477 },
-        { keywords: ["17BL", "17블록", "대성베르힐"], lat: 35.149866, lng: 128.915778 },
+        { keywords: ["17BL", "17블록", "대성베르힐"], lat: 35.149880, lng: 128.915773 },
         { keywords: ["28BL", "28블록", "디에트르더퍼스트", "디에트르"], lat: 35.149797, lng: 128.922420 },
         { keywords: ["11BL", "11블록", "트레파크", "트래파크"], lat: 35.152678, lng: 128.911186 },
-        { keywords: ["대방엘리움", "엘리움리버뷰", "31BL", "31블록"], lat: 35.140561, lng: 128.927414 }
+        { keywords: ["대방엘리움", "엘리움리버뷰", "31BL", "31블록"], lat: 35.140561, lng: 128.927414 },
+        { keywords: ["푸르지오마린", "마린", "27BL", "27블록"], lat: 35.141390, lng: 128.919217 },
+        { keywords: ["강서자이", "20BL", "20블록"], lat: 35.142429, lng: 128.915028 },
+        { keywords: ["수자인", "한양수자인", "21BL", "21블록"], lat: 35.139678, lng: 128.915775 }
     ];
 
     // [공고명 속 지명 키워드 -> 실제 행정구역 강제 검증 및 교정 테이블]
@@ -335,7 +337,6 @@
     }
     var fourYearsAgoStr = getFourYearsAgoString();
 
-    // 최근 4년 이내 공고인지 판별
     function isWithinFourYears(apt) {
         var refDate = apt.CNTRCT_CNCLS_ENDDE || apt.RCEPT_ENDDE || apt.RCRIT_PBLANC_DE || "";
         if (!refDate || refDate === "-") return true;
@@ -636,7 +637,7 @@
             return;
         }
 
-        // 0순위-2: 부산 강서구(명지·에코델타시티) 대표님 실측 좌표 11곳 정위치 매핑
+        // 0순위-2: 부산 강서구(명지·에코델타시티) 실측 좌표 14곳 정위치 매핑
         if (!hint && (rawAddr.indexOf("강서구") !== -1 || normName.indexOf("에코델타") !== -1 || normName.indexOf("부산명지") !== -1)) {
             for (var i = 0; i < gangseoExactCoords.length; i++) {
                 var entry = gangseoExactCoords[i];
@@ -709,7 +710,6 @@
         });
 
         var seenPblanc = new Set();
-        // 중복 제거 + 현재 시점 기준 최근 4년 이내 공고만 필터링
         var uniqueItems = rawItems.filter(function(apt) {
             if (!isWithinFourYears(apt)) return false;
             var key = apt.PBLANC_NO || (apt.HOUSE_NM + "_" + apt.RCRIT_PBLANC_DE);
