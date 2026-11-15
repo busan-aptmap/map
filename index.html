@@ -239,15 +239,15 @@
         }
     ];
 
-    // [위치 이탈 방지용 현장 정위치 고정 좌표 테이블 - 금강펜테리움(서낙동강 우측 에코델타시티 주거블록) 기준 배치]
+    // [위치 이탈 방지용 현장 정위치 고정 좌표 테이블]
+    // ※ addrMustInclude 조건을 추가해 김해·장안·타지역 동일 브랜드가 에코델타시티로 끌려오는 현상을 원천 차단
     var fixedCoordsMap = [
-        { keywords: ["트라비스", "트래비스", "엄궁"], lat: 35.1268, lng: 128.9710 },
-        { keywords: ["에코델타시티아테라", "에코델타아테라", "아테라"], lat: 35.1415, lng: 128.9235 },
-        { keywords: ["트레파크", "트래파크", "에코델타시티트레파크", "에코델타트레파크"], lat: 35.1372, lng: 128.9268 },
-        { keywords: ["에코델타시티푸르지오", "푸르지오트레파크"], lat: 35.1372, lng: 128.9268 },
-        { keywords: ["에코델타시티디에트르", "디에트르"], lat: 35.1318, lng: 128.9225 },
-        { keywords: ["에코델타시티호반", "호반써밋"], lat: 35.1295, lng: 128.9255 },
-        { keywords: ["대성베르힐", "에코델타시티대성베르힐"], lat: 35.1392, lng: 128.9218 }
+        { addrMustInclude: "사상구", keywords: ["트라비스", "트래비스", "엄궁"], lat: 35.1268, lng: 128.9710 },
+        { addrMustInclude: "강서구", keywords: ["에코델타시티아테라", "에코델타아테라", "아테라"], lat: 35.1415, lng: 128.9235 },
+        { addrMustInclude: "강서구", keywords: ["에코델타시티트레파크", "에코델타트레파크", "트레파크", "트래파크"], lat: 35.1372, lng: 128.9268 },
+        { addrMustInclude: "강서구", keywords: ["에코델타시티디에트르", "디에트르"], lat: 35.1318, lng: 128.9225 },
+        { addrMustInclude: "강서구", keywords: ["에코델타시티호반", "호반써밋"], lat: 35.1295, lng: 128.9255 },
+        { addrMustInclude: "강서구", keywords: ["에코델타시티대성베르힐", "대성베르힐"], lat: 35.1392, lng: 128.9218 }
     ];
 
     function normalizeName(str) {
@@ -490,9 +490,12 @@
     function findAccurateCoords(name, rawAddr, callback) {
         var normName = normalizeName(name);
 
-        // 0순위: 현장 정위치 고정 좌표 강제 매핑 (금강 부근 에코델타시티 주거블록 기준)
+        // 0순위: 공급위치(시/구)가 정확히 일치할 때만 현장 고정 좌표 적용 (김해·장안 오매칭 원천 차단)
         for (var i = 0; i < fixedCoordsMap.length; i++) {
             var entry = fixedCoordsMap[i];
+            if (entry.addrMustInclude && rawAddr.indexOf(entry.addrMustInclude) === -1) {
+                continue;
+            }
             for (var j = 0; j < entry.keywords.length; j++) {
                 if (normName.indexOf(entry.keywords[j]) !== -1) {
                     callback(new kakao.maps.LatLng(entry.lat, entry.lng));
@@ -501,7 +504,7 @@
             }
         }
 
-        // 1순위: 카카오 키워드 검색 (금강·에듀리버·연제갤러리자이 등 일반 단지 정위치 검색)
+        // 1순위: 카카오 키워드 검색 (김해 현장, 기장 장안 현장 등 모든 일반 단지 실제 위치 검색)
         var regionPrefix = rawAddr.split(" ").slice(0, 2).join(" ");
         var keyword = regionPrefix + " " + name;
 
