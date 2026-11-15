@@ -1,3 +1,202 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>분양맵 - 부산 선착순 분양지도 · 부산 부동산 아파트 분양 · 미분양 및 전국 청약 정보</title>
+    <meta name="description" content="부산 선착순 분양지도 및 부산 부동산 아파트 분양, 미분양 아파트 현황, 동호수 지정, 전국·부산 청약 정보를 한눈에 확인하는 실시간 분양맵입니다.">
+    <meta property="og:title" content="분양맵 - 부산 선착순 분양지도 · 부산 아파트 분양 · 미분양 및 전국 청약 정보">
+    <meta property="og:description" content="부산 선착순 분양지도, 부산 아파트 분양, 미분양, 전국 청약 정보를 지도로 한눈에 확인하세요.">
+    <meta property="og:url" content="https://busan-aptmap.github.io/map/">
+    <meta name="naver-site-verification" content="994e1a4f94418b4d40ab140a6bfb2ff7bdad952b" />
+    <meta name="google-site-verification" content="IpCDzYKq6bdLeO5Wqy3KqvXTJBzs2f8tNjh78JleSAM" />
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif;
+        }
+        #map {
+            width: 100%;
+            height: 100vh;
+        }
+        .control-panel {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .region-controls {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 6px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+            border: 1px solid #cbd5e1;
+        }
+        .btn-region, .btn-filter {
+            flex: 1;
+            text-align: center;
+            white-space: nowrap;
+            border: none;
+            background: #f1f5f9;
+            color: #475569;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-region:hover, .btn-filter:hover { background: #e2e8f0; }
+        .btn-region.active { background: #2563eb; color: #ffffff; }
+        .btn-filter.active { background: #0f172a; color: #ffffff; }
+        .btn-filter.fcfs-btn.active { background: #ea580c; color: #ffffff; }
+        .btn-filter.apt-btn.active { background: #16a34a; color: #ffffff; }
+
+        .status-badge {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 100;
+            background: rgba(15, 23, 42, 0.85);
+            color: #ffffff;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .info-box {
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+            padding: 10px 14px;
+            border: 1px solid #cbd5e1;
+            min-width: 180px;
+            text-align: left;
+            cursor: pointer;
+            transition: transform 0.15s ease;
+        }
+        .info-box:hover { transform: translateY(-2px); }
+        .badge {
+            display: inline-block;
+            padding: 3px 6px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 4px;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+        .badge-apt { background: #16a34a; }
+        .badge-fcfs { background: #ea580c; }
+        .badge-check { background: #dc2626; }
+
+        .title { font-weight: bold; font-size: 14px; color: #0f172a; margin-bottom: 4px; }
+        .desc { font-size: 11px; color: #475569; line-height: 1.4; }
+        .click-hint { font-size: 10px; color: #2563eb; margin-top: 4px; font-weight: bold; }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.55);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: #ffffff;
+            width: 90%;
+            max-width: 420px;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .modal-close {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            font-size: 20px;
+            cursor: pointer;
+            color: #64748b;
+            background: none;
+            border: none;
+        }
+        .modal-title { font-size: 17px; font-weight: bold; color: #0f172a; margin-bottom: 12px; }
+        .modal-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 14px; }
+        .modal-table th { text-align: left; color: #64748b; padding: 6px 4px; border-bottom: 1px solid #e2e8f0; width: 85px; }
+        .modal-table td { color: #0f172a; padding: 6px 4px; border-bottom: 1px solid #e2e8f0; }
+        .expert-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; }
+        .expert-box-title { font-size: 12px; font-weight: bold; color: #0f172a; margin-bottom: 6px; }
+        .expert-box-list { margin: 0; padding-left: 16px; font-size: 11px; color: #334155; line-height: 1.5; }
+        .consult-group { display: flex; gap: 8px; margin-bottom: 8px; }
+        .btn-kakao, .btn-call {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .btn-kakao { background: #fee500; color: #191919; }
+        .btn-call { background: #2563eb; color: #ffffff; }
+        .modal-btn-link {
+            display: block;
+            text-align: center;
+            font-size: 11px;
+            color: #475569;
+            text-decoration: underline;
+            margin-top: 6px;
+        }
+        @media (max-width: 768px) {
+            .control-panel { top: 8px; left: 8px; right: 8px; gap: 4px; }
+            .region-controls { padding: 4px; gap: 4px; }
+            .btn-region, .btn-filter { padding: 6px 4px; font-size: 11px; }
+            .status-badge { top: auto; bottom: 12px; right: 10px; font-size: 10px; padding: 6px 10px; }
+            .modal-content { width: 92%; max-height: 85vh; overflow-y: auto; padding: 14px; }
+        }
+    </style>
+    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=42553244187f3d43b01f98a4468460dc&libraries=services"></script>
+</head>
+<body>
+
+<div class="control-panel">
+    <div class="region-controls">
+        <button class="btn-region active" onclick="moveToRegion('busan', this)">부산·경남</button>
+        <button class="btn-region" onclick="moveToRegion('national', this)">전국 전체</button>
+        <button class="btn-region" onclick="moveToRegion('seoul', this)">수도권</button>
+    </div>
+    <div class="region-controls">
+        <button class="btn-filter active" onclick="filterMarkers('all', this)">전체 단지</button>
+        <button class="btn-filter fcfs-btn" onclick="filterMarkers('fcfs', this)">선착순·미분양만</button>
+        <button class="btn-filter apt-btn" onclick="filterMarkers('apt', this)">실시간 청약만</button>
+    </div>
+</div>
+
+<div id="status" class="status-badge">청약 데이터 연결 중...</div>
+<div id="map"></div>
+
+<div id="modalOverlay" class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <div id="modalBody"></div>
+    </div>
+</div>
+
 <script>
     var mapContainer = document.getElementById('map');
     var mapOption = {
@@ -14,7 +213,7 @@
     var totalTargetCount = 0;
     var loadedCount = 0;
 
-    // [누락 방지용 필수 추가 단지 리스트]
+    // [누락 방지용 필수 추가 단지 리스트 - API 1000건 밖으로 밀린 주력 현장 고정 등록]
     var mustIncludeList = [
         {
             HOUSE_NM: "에코델타시티 중흥S-클래스 에듀리버",
@@ -26,20 +225,33 @@
             CNTRCT_CNCLS_BGNDE: "2025-06-09",
             CNTRCT_CNCLS_ENDDE: "2025-06-11",
             BSNS_MBY_NM: "중흥토건(주)"
+        },
+        {
+            HOUSE_NM: "연제 갤러리자이",
+            HSSPLY_ADRES: "부산광역시 연제구 연산동 일원",
+            TOT_SUPLY_HSHLDCO: "-",
+            RCEPT_BGNDE: "-",
+            RCEPT_ENDDE: "-",
+            PRZWNER_PRESN_DATE: "-",
+            CNTRCT_CNCLS_BGNDE: "-",
+            CNTRCT_CNCLS_ENDDE: "2025-12-31",
+            BSNS_MBY_NM: "GS건설(주)"
         }
     ];
 
-    // [위치 이탈 방지용 현장 정위치 고정 좌표 테이블]
+    // [위치 이탈 방지용 현장 정위치 고정 좌표 테이블 - 띄어쓰기/특수문자 무시 매칭]
     var fixedCoordsMap = [
         { keywords: ["트라비스", "트래비스", "엄궁"], lat: 35.1268, lng: 128.9710 },
-        { keywords: ["에코델타시티 아테라", "에코델타 아테라", "아테라"], lat: 35.1342, lng: 128.9388 },
-        { keywords: ["트레파크", "트래파크", "에코델타시티 트레파크"], lat: 35.1295, lng: 128.9435 }
+        { keywords: ["에코델타시티아테라", "에코델타아테라", "아테라"], lat: 35.1481, lng: 128.9439 },
+        { keywords: ["트레파크", "트래파크", "에코델타시티트레파크", "에코델타트레파크"], lat: 35.1388, lng: 128.9452 },
+        { keywords: ["연제갤러리자이", "갤러리자이"], lat: 35.1862, lng: 129.0815 }
     ];
 
     function normalizeName(str) {
         return (str || "").replace(/[\s\-\(\)·]/g, "");
     }
 
+    // 주소 기반 권역 판별 함수
     function matchRegion(addr, regionType) {
         if (regionType === 'national') return true;
         if (!addr) return false;
@@ -67,6 +279,7 @@
         return true;
     }
 
+    // 지역 + 유형 통합 필터링 및 상태 카운트 갱신
     function applyFilters() {
         var visibleCount = 0;
         allMarkerItems.forEach(function(item) {
@@ -152,6 +365,7 @@
             .trim();
     }
 
+    // 구글 시트 담당자 관리 연동
     var sheetManagers = [];
     var SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9i0XauGTtL6JWFSjKx0trX6LAnw-_hvb6LV3YEe1RKWnZLSxyi2szhaYaHyrSqDj5rwdIZLuO53Vt/pub?gid=0&single=true&output=csv";
 
@@ -271,11 +485,13 @@
     }
 
     function findAccurateCoords(name, rawAddr, callback) {
-        // 0순위: 위치 이탈 방지용 고정 좌표 확인
+        var normName = normalizeName(name);
+
+        // 0순위: 공백/특수문자 제거 후 고정 좌표 강제 매핑
         for (var i = 0; i < fixedCoordsMap.length; i++) {
             var entry = fixedCoordsMap[i];
             for (var j = 0; j < entry.keywords.length; j++) {
-                if (name.indexOf(entry.keywords[j]) !== -1) {
+                if (normName.indexOf(entry.keywords[j]) !== -1) {
                     callback(new kakao.maps.LatLng(entry.lat, entry.lng));
                     return;
                 }
@@ -283,7 +499,7 @@
         }
 
         // 에코델타시티 블록 표기 단지는 일반 키워드 검색 시 타 지역 유사 상호로 튈 수 있어 주소 검색 우선
-        var isEcoDelta = (name.indexOf("에코델타") !== -1 || rawAddr.indexOf("강동동") !== -1 || rawAddr.indexOf("명지동") !== -1);
+        var isEcoDelta = (normName.indexOf("에코델타") !== -1 || rawAddr.indexOf("강동동") !== -1 || rawAddr.indexOf("명지동") !== -1);
 
         if (isEcoDelta) {
             var ecoAddr = cleanAddress(rawAddr);
@@ -291,7 +507,7 @@
                 if (addrStatus === kakao.maps.services.Status.OK) {
                     callback(new kakao.maps.LatLng(result[0].y, result[0].x));
                 } else {
-                    callback(new kakao.maps.LatLng(35.1325, 128.9410)); // 강서구 강동동 에코델타 중심 보정
+                    callback(new kakao.maps.LatLng(35.1325, 128.9410));
                 }
             });
             return;
@@ -347,7 +563,7 @@
         .then(function(data) {
             var rawItems = (data && data.data) ? data.data : [];
 
-            // 1) 부산·울산·경남 지역 단지는 세대수 순위와 무관하게 100% 전부 보존 (연제 갤러리자이 등 누락 방지)
+            // 1) 부산·울산·경남 지역 단지는 세대수 순위와 무관하게 100% 전부 보존
             var busanGyeongnamItems = rawItems.filter(function(apt) {
                 return matchRegion(apt.HSSPLY_ADRES, 'busan');
             });
@@ -453,3 +669,5 @@
         });
     }
 </script>
+</body>
+</html>
