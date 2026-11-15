@@ -5,11 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>분양맵 - 부산 선착순 분양지도 · 부산 부동산 아파트 분양 · 미분양 및 전국 청약 정보</title>
     <meta name="description" content="부산 선착순 분양지도 및 부산 부동산 아파트 분양, 미분양 아파트 현황, 동호수 지정, 전국·부산 청약 정보를 한눈에 확인하는 실시간 분양맵입니다.">
-    <meta property="og:title" content="분양맵 - 부산 선착순 분양지도 · 부산 아파트 분양 · 미분양 및 전국 청약 정보">
-    <meta property="og:description" content="부산 선착순 분양지도, 부산 아파트 분양, 미분양, 전국 청약 정보를 지도로 한눈에 확인하세요.">
-    <meta property="og:url" content="https://busan-aptmap.github.io/map/">
-    <meta name="naver-site-verification" content="994e1a4f94418b4d40ab140a6bfb2ff7bdad952b" />
-    <meta name="google-site-verification" content="IpCDzYKq6bdLeO5Wqy3KqvXTJBzs2f8tNjh78JleSAM" />
     <style>
         html, body {
             margin: 0;
@@ -75,17 +70,17 @@
             font-weight: bold;
         }
 
-        /* 좌표 확인용 토글 버튼 및 결과 박스 */
+        /* 상단 필터 버튼 바로 아래에 배치된 좌표 확인용 도구 */
         .coord-tool-btn {
             position: absolute;
-            bottom: 20px;
+            top: 108px;
             left: 16px;
             z-index: 150;
             background: #ffffff;
             color: #0f172a;
             border: 2px solid #2563eb;
-            padding: 8px 14px;
-            border-radius: 20px;
+            padding: 7px 12px;
+            border-radius: 8px;
             font-size: 12px;
             font-weight: bold;
             cursor: pointer;
@@ -99,13 +94,13 @@
         .coord-result-box {
             display: none;
             position: absolute;
-            bottom: 64px;
+            top: 148px;
             left: 16px;
             z-index: 150;
             background: rgba(15, 23, 42, 0.95);
             color: #ffffff;
-            padding: 12px 14px;
-            border-radius: 10px;
+            padding: 10px 14px;
+            border-radius: 8px;
             font-size: 12px;
             box-shadow: 0 6px 20px rgba(0,0,0,0.3);
             align-items: center;
@@ -230,9 +225,9 @@
             .control-panel { top: 8px; left: 8px; right: 8px; gap: 4px; }
             .region-controls { padding: 4px; gap: 4px; }
             .btn-region, .btn-filter { padding: 6px 4px; font-size: 11px; }
+            .coord-tool-btn { top: 84px; left: 8px; font-size: 11px; padding: 5px 10px; }
+            .coord-result-box { top: 118px; left: 8px; font-size: 11px; }
             .status-badge { top: auto; bottom: 12px; right: 10px; font-size: 10px; padding: 6px 10px; }
-            .coord-tool-btn { bottom: 12px; left: 10px; font-size: 11px; padding: 6px 10px; }
-            .coord-result-box { bottom: 48px; left: 10px; right: 10px; font-size: 11px; }
             .modal-content { width: 92%; max-height: 85vh; overflow-y: auto; padding: 14px; }
         }
     </style>
@@ -253,15 +248,15 @@
     </div>
 </div>
 
-<div id="status" class="status-badge">부산·경남 전수 데이터 수집 중...</div>
-<div id="map"></div>
-
-<!-- 좌표 확인용 UI -->
+<!-- 왼쪽 상단 좌표 찍기 도구 -->
 <button id="coordToolBtn" class="coord-tool-btn" onclick="toggleCoordPicker()">📍 좌표 찍기: OFF</button>
 <div id="coordResultBox" class="coord-result-box">
     <span id="coordText">lat: 0, lng: 0</span>
     <button class="coord-copy-btn" onclick="copyPickedCoord()">복사하기</button>
 </div>
+
+<div id="status" class="status-badge">부산·경남 전수 데이터 수집 중...</div>
+<div id="map"></div>
 
 <div id="modalOverlay" class="modal-overlay" onclick="closeModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
@@ -319,9 +314,15 @@
 
     function copyPickedCoord() {
         if (!lastPickedString) return;
-        navigator.clipboard.writeText(lastPickedString).then(function() {
-            alert("좌표가 복사되었습니다:\n" + lastPickedString);
-        });
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(lastPickedString).then(function() {
+                alert("좌표가 복사되었습니다:\n" + lastPickedString);
+            }).catch(function() {
+                prompt("아래 좌표를 복사하세요 (Ctrl+C):", lastPickedString);
+            });
+        } else {
+            prompt("아래 좌표를 복사하세요 (Ctrl+C):", lastPickedString);
+        }
     }
 
     var allMarkerItems = [];
@@ -329,7 +330,6 @@
     var currentFilter = 'all';
     var totalTargetCount = 0;
     var loadedCount = 0;
-    var fixedMismatchLogs = [];
 
     // [누락 방지용 필수 추가 단지 리스트]
     var mustIncludeList = [
@@ -400,7 +400,7 @@
         { keyword: "울산", expectedRegion: "울산", fallbackQuery: "울산광역시", fallbackLat: 35.5384, fallbackLng: 129.3114 }
     ];
 
-    // [에코델타시티 블록별 정위치 위경도 매핑 - 좌표 찍기 도구로 확인 후 숫자 교체 가능]
+    // [에코델타시티 블록별 정위치 위경도 매핑]
     var ecoDeltaBlockCoords = [
         { keywords: ["6BL", "금강펜테리움", "금강"], lat: 35.1438, lng: 128.9215 },
         { keywords: ["4BL", "에듀리버", "중흥S클래스"], lat: 35.1402, lng: 128.9265 },
@@ -683,13 +683,6 @@
             if (status === kakao.maps.services.Status.OK && result.length > 0) {
                 var regionFull = result[0].address_name || "";
                 if (regionFull.indexOf(hint.expectedRegion) === -1) {
-                    fixedMismatchLogs.push({
-                        name: name,
-                        apiAddr: rawAddr,
-                        wrongRegion: regionFull,
-                        correctedTo: hint.fallbackQuery
-                    });
-
                     places.keywordSearch(hint.fallbackQuery + " " + name, function(pData, pStatus) {
                         var validPlace = (pStatus === kakao.maps.services.Status.OK)
                             ? pData.find(function(item) {
