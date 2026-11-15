@@ -4,7 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>분양맵 - 부산 선착순 분양지도 · 부산 부동산 아파트 분양 · 미분양 및 전국 청약 정보</title>
-    <meta name="description" content="부산 선착순 분양지도 및 부산 부동산 아파트 분양, 미분양 아파트 현황, 동호수 지정, 전국·부산 청약 정보를 한눈에 확인하는 실시간 분양맵입니다.">
+    <meta name="description" content="부산 선착순 분양지도 및 부산 부동산 아파트 분양, 미분양 아파트 현황, 동호수 지정, 전국·부산 실시간 청약 및 선착순 계약 단지 정보를 한눈에 확인하는 분양맵입니다.">
+    <meta id="dynamicKeywords" name="keywords" content="부산 선착순 분양지도, 부산 미분양 아파트, 에코델타시티 분양, 명지국제신도시 분양, 부산 실시간 청약, 동호수 지정">
     <style>
         html, body {
             margin: 0;
@@ -17,6 +18,15 @@
         #map {
             width: 100%;
             height: 100vh;
+        }
+        /* 검색엔진(네이버·구글) 크롤러 전용 시맨틱 텍스트 영역 (지도 UI 간섭 없음) */
+        .seo-sr-only {
+            position: absolute;
+            left: -9999px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
         }
         .control-panel {
             position: absolute;
@@ -202,6 +212,13 @@
 <div id="status" class="status-badge">실시간 분양 데이터 수집 중...</div>
 <div id="map"></div>
 
+<!-- 검색엔진(네이버·구글) 크롤링용 실시간 청약 및 선착순 현장 자동 색인 영역 -->
+<section id="seo-listing-directory" class="seo-sr-only" aria-label="실시간 청약 및 선착순 미분양 분양 단지 목록">
+    <h1>부산·경남 및 전국 실시간 청약 · 선착순 미분양 분양지도</h1>
+    <p>에코델타시티 아테라(24BL), 에코델타시티 중흥S-클래스 에듀리버(4BL), 에코델타시티 중흥S-클래스 리버시티(2BL), 부산 에코델타시티 16블록 중흥S-클래스, 에코델타시티 푸르지오 트레파크(11BL), 에코델타시티 대성베르힐(17BL), 부산에코델타시티 디에트르 더 퍼스트(28BL), 부산에코델타 7BL 호반써밋, 부산에코델타시티 대방 엘리움 리버뷰(31BL), 에코델타시티 푸르지오 린(27BL), 강서자이 에코델타(20BL), 에코델타 스마트시티 수자인(21BL), 명지국제신도시 A2블록 금강펜테리움 센트럴파크3, 부산명지 행복주택, 연제 갤러리자이 등 실시간 청약 및 선착순 동호수 지정 분양 안내.</p>
+    <ul id="seoDynamicList"></ul>
+</section>
+
 <div id="modalOverlay" class="modal-overlay" onclick="closeModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="closeModal()">&times;</button>
@@ -225,7 +242,6 @@
     var totalTargetCount = 0;
     var loadedCount = 0;
 
-    // [누락 방지용 필수 추가 단지 리스트 - API 누락 및 핵심 보완 현장]
     var mustIncludeList = [
         {
             HOUSE_NM: "에코델타시티 중흥S-클래스 에듀리버",
@@ -306,8 +322,6 @@
         }
     ];
 
-    // [실측 완료 + 지도 캡처 반영: 명지·에코델타시티 전 현장 100% 정위치 고정 테이블]
-    // ※ 공고명/주소에서 특수문자·공백을 제거한 문자열에 아래 키워드 중 하나라도 포함되면 즉시 고정 좌표로 꽂힘
     var gangseoExactCoords = [
         { keywords: ["센트럴파크3", "A2블록", "A2BL"], lat: 35.103514, lng: 128.922287 },
         { keywords: ["부산명지행복주택", "명지행복주택"], lat: 35.089513, lng: 128.898588 },
@@ -327,7 +341,6 @@
         { keywords: ["센터포인트", "19블록", "19BL"], lat: 35.144450, lng: 128.915350 }
     ];
 
-    // [공고명 속 지명 키워드 -> 실제 행정구역 강제 검증 및 교정 테이블]
     var titleRegionHints = [
         { keyword: "초량", expectedRegion: "동구", fallbackQuery: "부산광역시 동구 초량동", fallbackLat: 35.1185, fallbackLng: 129.0398 },
         { keyword: "장안", expectedRegion: "기장군", fallbackQuery: "부산광역시 기장군 장안읍", fallbackLat: 35.3315, fallbackLng: 129.2475 },
@@ -434,11 +447,6 @@
         return 'old';
     }
 
-    // [합의된 지역별 차등 노출 규칙]
-    // 1. 부산·울산·경남: 최근 5년 이내 전체 노출
-    // 2. 서울·인천·경기(수도권): 최근 2년 이내 전체 노출
-    // 3. 강원·전남: 실시간 청약(신규)만 노출
-    // 4. 나머지 기타 지방: 실시간 청약 + 정당계약 종료 후 1년 이내(선착순 계약)까지만 노출
     function shouldIncludeByRegionRule(apt) {
         var addr = apt.HSSPLY_ADRES || "";
         var refDate = apt.RCEPT_BGNDE || apt.CNTRCT_CNCLS_ENDDE || apt.RCRIT_PBLANC_DE || "";
@@ -459,6 +467,34 @@
         }
 
         return statusType === 'apt' || statusType === 'fcfs';
+    }
+
+    // [검색엔진(SEO) 전용 실시간 청약 + 선착순 계약 현장 전체 자동 주입]
+    function populateSeoDirectory(items) {
+        var listEl = document.getElementById('seoDynamicList');
+        var kwMeta = document.getElementById('dynamicKeywords');
+        if (!listEl) return;
+
+        var activeNames = [];
+        var htmlParts = [];
+
+        items.forEach(function(apt) {
+            var statusType = getAptStatus(apt.CNTRCT_CNCLS_ENDDE || "");
+            if (statusType === 'apt' || statusType === 'fcfs') {
+                var name = apt.HOUSE_NM || "";
+                var addr = apt.HSSPLY_ADRES || "";
+                var statusLabel = statusType === 'apt' ? "실시간 청약 진행중" : "선착순 계약 · 잔여세대 분양";
+                if (name) {
+                    activeNames.push(name);
+                    htmlParts.push(`<li><strong>${name}</strong> (${addr}) - ${statusLabel}</li>`);
+                }
+            }
+        });
+
+        listEl.innerHTML = htmlParts.join("");
+        if (kwMeta && activeNames.length > 0) {
+            kwMeta.setAttribute("content", "부산 선착순 분양지도, 부산 미분양 아파트, 실시간 청약, " + activeNames.slice(0, 60).join(", "));
+        }
     }
 
     function applyFilters() {
@@ -530,7 +566,6 @@
             .trim();
     }
 
-    // [구글 시트 연동: 담당자 정보 + H열(위도), I열(경도) 직접 좌표 지원]
     var sheetManagers = [];
     var SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9i0XauGTtL6JWFSjKx0trX6LAnw-_hvb6LV3YEe1RKWnZLSxyi2szhaYaHyrSqDj5rwdIZLuO53Vt/pub?gid=0&single=true&output=csv";
 
@@ -715,20 +750,17 @@
         var combinedText = normName + "_" + normalizeName(rawAddr);
         var hint = detectTitleRegionHint(name);
 
-        // 0순위-A: 구글 시트에 직접 위도(H열)·경도(I열)가 입력된 경우 최우선 적용
         var assigned = getAssignedManager(name);
         if (assigned && assigned.customLat && assigned.customLng) {
             callback(new kakao.maps.LatLng(assigned.customLat, assigned.customLng));
             return;
         }
 
-        // 0순위-B: 엄궁 트라비스 예외 고정
         if (normName.indexOf("트라비스") !== -1 || normName.indexOf("트래비스") !== -1) {
             callback(new kakao.maps.LatLng(35.1268, 128.9710));
             return;
         }
 
-        // 0순위-C: 부산 강서구(명지·에코델타시티) 실측 좌표 + 캡처 단지 16곳 무조건 최우선 강제 매핑
         if (rawAddr.indexOf("강서구") !== -1 || normName.indexOf("에코델타") !== -1 || normName.indexOf("부산명지") !== -1 || normName.indexOf("명지국제") !== -1 || normName.indexOf("강서자이") !== -1) {
             for (var i = 0; i < gangseoExactCoords.length; i++) {
                 var entry = gangseoExactCoords[i];
@@ -741,7 +773,6 @@
             }
         }
 
-        // 1순위: 공급위치 정식 지번/도로명 주소 지오코딩 -> 행정구역 검증 통과
         var searchAddr = cleanAddress(rawAddr);
         geocoder.addressSearch(searchAddr, function(result, addrStatus) {
             if (addrStatus === kakao.maps.services.Status.OK) {
@@ -812,12 +843,10 @@
             return true;
         });
 
-        // 1순위: 부산·울산·경남 (5년 이내 전수)
         var busanGyeongnamItems = uniqueItems.filter(function(apt) {
             return matchRegion(apt.HSSPLY_ADRES, 'busan');
         });
 
-        // 2순위: 서울·인천·경기 수도권 (2년 이내 최대 80건)
         var seoulItems = uniqueItems
             .filter(function(apt) {
                 return !matchRegion(apt.HSSPLY_ADRES, 'busan') && matchRegion(apt.HSSPLY_ADRES, 'seoul');
@@ -827,7 +856,6 @@
             })
             .slice(0, 80);
 
-        // 3순위: 기타 지방 (강원·전남은 신규만, 나머지는 선착순 1년 이내까지만 상위 40건)
         var etcItems = uniqueItems
             .filter(function(apt) {
                 return !matchRegion(apt.HSSPLY_ADRES, 'busan') && !matchRegion(apt.HSSPLY_ADRES, 'seoul');
@@ -845,6 +873,9 @@
                 items.unshift(extra);
             }
         });
+
+        // 검색엔진 색인용 실시간 청약·선착순 현장 자동 업데이트
+        populateSeoDirectory(items);
 
         var validItems = items.filter(function(apt) { return !!apt.HSSPLY_ADRES; });
         totalTargetCount = validItems.length;
