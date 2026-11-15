@@ -228,7 +228,7 @@
         },
         {
             HOUSE_NM: "연제 갤러리자이",
-            HSSPLY_ADRES: "부산광역시 연제구 연산동 일원",
+            HSSPLY_ADRES: "부산광역시 연제구 연산동",
             TOT_SUPLY_HSHLDCO: "-",
             RCEPT_BGNDE: "-",
             RCEPT_ENDDE: "-",
@@ -239,12 +239,16 @@
         }
     ];
 
-    // [위치 이탈 방지용 현장 정위치 고정 좌표 테이블 - 강동동 실제 블록 위치]
+    // [위치 이탈 방지용 현장 정위치 고정 좌표 테이블]
+    // ※ 금강·에듀리버는 카카오 검색으로 정확히 잡히므로 제외하고, 이탈하는 단지들만 블록별 정위치 매핑
     var fixedCoordsMap = [
         { keywords: ["트라비스", "트래비스", "엄궁"], lat: 35.1268, lng: 128.9710 },
-        { keywords: ["에코델타시티아테라", "에코델타아테라", "아테라"], lat: 35.1518, lng: 128.9431 },
-        { keywords: ["트레파크", "트래파크", "에코델타시티트레파크", "에코델타트레파크"], lat: 35.1432, lng: 128.9445 },
-        { keywords: ["연제갤러리자이", "갤러리자이"], lat: 35.1862, lng: 129.0815 }
+        { keywords: ["에코델타시티아테라", "에코델타아테라", "아테라"], lat: 35.1492, lng: 128.9428 },
+        { keywords: ["트레파크", "트래파크", "에코델타시티트레파크", "에코델타트레파크"], lat: 35.1375, lng: 128.9438 },
+        { keywords: ["에코델타시티푸르지오", "푸르지오트레파크"], lat: 35.1375, lng: 128.9438 },
+        { keywords: ["에코델타시티디에트르", "디에트르"], lat: 35.1312, lng: 128.9415 },
+        { keywords: ["에코델타시티호반", "호반써밋"], lat: 35.1298, lng: 128.9442 },
+        { keywords: ["대성베르힐", "에코델타시티대성베르힐"], lat: 35.1445, lng: 128.9410 }
     ];
 
     function normalizeName(str) {
@@ -487,7 +491,7 @@
     function findAccurateCoords(name, rawAddr, callback) {
         var normName = normalizeName(name);
 
-        // 0순위: 현장 정위치 고정 좌표 강제 매핑
+        // 0순위: 현장 정위치 고정 좌표 강제 매핑 (이탈 단지 전용)
         for (var i = 0; i < fixedCoordsMap.length; i++) {
             var entry = fixedCoordsMap[i];
             for (var j = 0; j < entry.keywords.length; j++) {
@@ -498,21 +502,7 @@
             }
         }
 
-        // 에코델타시티 블록 표기 단지는 일반 키워드 검색 시 타 지역 유사 상호로 튀므로 주소 검색 우선
-        var isEcoDelta = (normName.indexOf("에코델타") !== -1 || rawAddr.indexOf("강동동") !== -1 || rawAddr.indexOf("명지동") !== -1);
-
-        if (isEcoDelta) {
-            var ecoAddr = cleanAddress(rawAddr);
-            geocoder.addressSearch(ecoAddr, function(result, addrStatus) {
-                if (addrStatus === kakao.maps.services.Status.OK) {
-                    callback(new kakao.maps.LatLng(result[0].y, result[0].x));
-                } else {
-                    callback(new kakao.maps.LatLng(35.1450, 128.9435));
-                }
-            });
-            return;
-        }
-
+        // 1순위: 카카오 키워드 검색 (금강·에듀리버·연제갤러리자이 등 일반 단지 정위치 검색)
         var regionPrefix = rawAddr.split(" ").slice(0, 2).join(" ");
         var keyword = regionPrefix + " " + name;
 
@@ -567,7 +557,6 @@
             if (res && res.data) rawItems = rawItems.concat(res.data);
         });
 
-        // 중복 공고 제거
         var seenPblanc = new Set();
         var uniqueItems = rawItems.filter(function(apt) {
             var key = apt.PBLANC_NO || (apt.HOUSE_NM + "_" + apt.RCRIT_PBLANC_DE);
@@ -576,7 +565,7 @@
             return true;
         });
 
-        // 1순위: 부산·경남·울산 전수 보존 (거제 현장 및 지역 전 단지 100% 확보)
+        // 1순위: 부산·경남·울산 전수 보존
         var busanGyeongnamItems = uniqueItems.filter(function(apt) {
             return matchRegion(apt.HSSPLY_ADRES, 'busan');
         });
@@ -591,7 +580,7 @@
             })
             .slice(0, 100);
 
-        // 3순위(후순위): 강원·전남·충청 등 기타 지방은 대단지 상위 40건만 후순위 배치
+        // 3순위(후순위): 기타 지방 대단지 상위 40건
         var etcItems = uniqueItems
             .filter(function(apt) {
                 return !matchRegion(apt.HSSPLY_ADRES, 'busan') && !matchRegion(apt.HSSPLY_ADRES, 'seoul');
@@ -601,7 +590,6 @@
             })
             .slice(0, 40);
 
-        // 부산·경남을 맨 앞에 두어 지도 로딩 즉시 1순위로 찍히도록 배치
         var items = busanGyeongnamItems.concat(seoulItems).concat(etcItems);
 
         var existingNames = new Set(items.map(function(i) { return normalizeName(i.HOUSE_NM); }));
