@@ -302,14 +302,21 @@
         { keyword: "울산", expectedRegion: "울산", fallbackQuery: "울산광역시", fallbackLat: 35.5384, fallbackLng: 129.3114 }
     ];
 
-    // [에코델타시티 블록별 실제 위경도 매핑 - 오직 공고명에 에코델타가 있거나 강서구 현장일 때만 적용]
+    // [에코델타시티 토지이용계획도 기준 블록별 정위치 위경도 매핑 - 강서구 전용]
     var ecoDeltaBlockCoords = [
-        { keywords: ["24BL", "아테라"], lat: 35.1415, lng: 128.9235 },
-        { keywords: ["11BL", "트레파크", "트래파크"], lat: 35.1372, lng: 128.9268 },
-        { keywords: ["4BL", "에듀리버"], lat: 35.1398, lng: 128.9242 },
-        { keywords: ["디에트르", "28BL", "13BL"], lat: 35.1318, lng: 128.9225 },
-        { keywords: ["호반", "7BL"], lat: 35.1295, lng: 128.9255 },
-        { keywords: ["대성베르힐", "17BL"], lat: 35.1392, lng: 128.9218 }
+        // 북측 ~ 중북측 블록
+        { keywords: ["6BL", "금강펜테리움", "금강"], lat: 35.1438, lng: 128.9215 },
+        { keywords: ["4BL", "에듀리버", "중흥S클래스"], lat: 35.1402, lng: 128.9265 },
+        { keywords: ["7BL", "호반써밋", "호반"], lat: 35.1385, lng: 128.9325 },
+        { keywords: ["11BL", "트레파크", "트래파크", "푸르지오트레파크"], lat: 35.1355, lng: 128.9255 },
+        { keywords: ["17BL", "대성베르힐"], lat: 35.1332, lng: 128.9218 },
+        { keywords: ["13BL", "디에트르더퍼스트", "디에트르"], lat: 35.1348, lng: 128.9295 },
+        // 중남측 ~ 남서측 블록 (평강천 인접 24BL~33BL)
+        { keywords: ["24BL", "아테라", "에코델타시티아테라"], lat: 35.1258, lng: 128.9212 },
+        { keywords: ["25BL", "26BL"], lat: 35.1282, lng: 128.9218 },
+        { keywords: ["28BL", "그랑루체"], lat: 35.1265, lng: 128.9275 },
+        { keywords: ["31BL", "대방엘리움", "엘리움리버뷰"], lat: 35.1242, lng: 128.9165 },
+        { keywords: ["32BL", "33BL"], lat: 35.1285, lng: 128.9158 }
     ];
 
     function normalizeName(str) {
