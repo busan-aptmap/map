@@ -7,335 +7,7 @@
     <meta name="description" content="부산 선착순 분양지도 및 부산 부동산 아파트 분양, 미분양 아파트 현황, 동호수 지정, 전국·부산 실시간 청약 및 선착순 계약 단지 정보를 한눈에 확인하는 분양맵입니다.">
     <meta id="dynamicKeywords" name="keywords" content="부산 선착순 분양지도, 부산 미분양 아파트, 에코델타시티 분양, 명지국제신도시 분양, 부산 실시간 청약, 동호수 지정">
     <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif;
-        }
-        #map {
-            width: 100%;
-            height: 100vh;
-        }
-        .seo-sr-only {
-            position: absolute;
-            left: -9999px;
-            top: auto;
-            width: 1px;
-            height: 1px;
-            overflow: hidden;
-        }
-        .control-panel {
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .region-controls {
-            display: flex;
-            flex-wrap: nowrap;
-            gap: 6px;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 6px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.18);
-            border: 1px solid #cbd5e1;
-        }
-        .btn-region, .btn-filter {
-            flex: 1;
-            text-align: center;
-            white-space: nowrap;
-            border: none;
-            background: #f1f5f9;
-            color: #475569;
-            padding: 8px 10px;
-            font-size: 13px;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .btn-region:hover, .btn-filter:hover { background: #e2e8f0; }
-        .btn-region.active { background: #2563eb; color: #ffffff; }
-        .btn-filter.active { background: #0f172a; color: #ffffff; }
-        .btn-filter.fcfs-btn.active { background: #ea580c; color: #ffffff; }
-        .btn-filter.apt-btn.active { background: #16a34a; color: #ffffff; }
-        .btn-filter.old-btn.active { background: #4f46e5; color: #ffffff; }
-
-        .status-badge {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            z-index: 100;
-            background: rgba(15, 23, 42, 0.85);
-            color: #ffffff;
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: bold;
-        }
-
-        .info-box {
-            background: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.22);
-            padding: 10px 14px;
-            border: 1px solid #cbd5e1;
-            min-width: 180px;
-            text-align: left;
-            cursor: pointer;
-            transition: transform 0.15s ease;
-        }
-        .info-box:hover { transform: translateY(-2px); }
-        .badge {
-            display: inline-block;
-            padding: 3px 6px;
-            font-size: 11px;
-            font-weight: bold;
-            border-radius: 4px;
-            color: #ffffff;
-            margin-bottom: 4px;
-        }
-        .badge-apt { background: #16a34a; }
-        .badge-fcfs { background: #ea580c; }
-        .badge-check { background: #dc2626; }
-        .badge-old { background: #4f46e5; }
-
-        .title { font-weight: bold; font-size: 14px; color: #0f172a; margin-bottom: 4px; }
-        .desc { font-size: 11px; color: #475569; line-height: 1.4; }
-        .click-hint { font-size: 10px; color: #2563eb; margin-top: 4px; font-weight: bold; }
-
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(15, 23, 42, 0.6);
-            z-index: 999;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background: #ffffff;
-            width: 92%;
-            max-width: 440px;
-            max-height: 88vh;
-            overflow-y: auto;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            position: relative;
-        }
-        .modal-close {
-            position: absolute;
-            top: 14px;
-            right: 16px;
-            font-size: 22px;
-            cursor: pointer;
-            color: #64748b;
-            background: none;
-            border: none;
-            line-height: 1;
-        }
-        .modal-title { font-size: 17px; font-weight: bold; color: #0f172a; margin-bottom: 12px; padding-right: 24px; }
-        .modal-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 14px; }
-        .modal-table th { text-align: left; color: #64748b; padding: 6px 4px; border-bottom: 1px solid #e2e8f0; width: 85px; }
-        .modal-table td { color: #0f172a; padding: 6px 4px; border-bottom: 1px solid #e2e8f0; }
-        .expert-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; }
-        .expert-box-title { font-size: 12px; font-weight: bold; color: #0f172a; margin-bottom: 6px; }
-        .expert-box-list { margin: 0; padding-left: 16px; font-size: 11px; color: #334155; line-height: 1.5; }
-
-        .staff-badge-btn {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            font-size: 12px;
-            color: #1e40af;
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            padding: 10px 12px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            box-sizing: border-box;
-            text-align: left;
-            transition: background 0.15s ease;
-        }
-        .staff-badge-btn:hover { background: #dbeafe; }
-
-        .btn-realty-full {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            padding: 11px 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: bold;
-            background: #0f172a;
-            color: #ffffff;
-            box-sizing: border-box;
-            margin-bottom: 8px;
-            cursor: pointer;
-            text-align: left;
-        }
-        .btn-realty-full:hover { background: #1e293b; }
-
-        .consult-group { display: flex; gap: 8px; margin-bottom: 8px; }
-        .btn-kakao, .btn-call {
-            flex: 1;
-            text-align: center;
-            padding: 10px 6px;
-            border-radius: 8px;
-            font-size: 11.5px;
-            font-weight: bold;
-            text-decoration: none;
-            box-sizing: border-box;
-            letter-spacing: -0.3px;
-        }
-        .btn-kakao { background: #fee500; color: #191919; }
-        .btn-call { background: #2563eb; color: #ffffff; }
-        .modal-btn-link {
-            display: block;
-            text-align: center;
-            font-size: 11px;
-            color: #475569;
-            text-decoration: underline;
-            margin-top: 6px;
-        }
-
-        /* 서브 상세 뷰(담당 직원 / 전담 부동산 매물 카드) */
-        .sub-back-btn {
-            display: inline-block;
-            background: #f1f5f9;
-            color: #334155;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            padding: 5px 10px;
-            font-size: 11px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-bottom: 12px;
-        }
-        .profile-card {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 12px;
-        }
-        .profile-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #2563eb;
-            background: #e2e8f0;
-            flex-shrink: 0;
-        }
-        .profile-placeholder {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: #dbeafe;
-            color: #1e40af;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: bold;
-            flex-shrink: 0;
-        }
-        .condition-box {
-            background: #fff7ed;
-            border: 1px solid #fed7aa;
-            border-radius: 8px;
-            padding: 10px 12px;
-            margin-bottom: 12px;
-            font-size: 12px;
-            color: #7c2d12;
-            line-height: 1.5;
-        }
-        .media-gallery {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        .media-gallery img {
-            width: 100%;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            object-fit: cover;
-        }
-        .video-wrapper {
-            position: relative;
-            width: 100%;
-            padding-bottom: 56.25%;
-            height: 0;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 12px;
-            background: #000;
-        }
-        .video-wrapper iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: 0;
-        }
-        .listing-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 14px;
-        }
-        .listing-item-card {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 8px;
-        }
-        .listing-thumb {
-            width: 72px;
-            height: 58px;
-            border-radius: 6px;
-            object-fit: cover;
-            background: #e2e8f0;
-            flex-shrink: 0;
-        }
-        .listing-text {
-            font-size: 12px;
-            color: #0f172a;
-            line-height: 1.4;
-            font-weight: 500;
-        }
-
-        @media (max-width: 768px) {
-            .control-panel { top: 8px; left: 8px; right: 8px; gap: 4px; }
-            .region-controls { padding: 4px; gap: 3px; }
-            .btn-region, .btn-filter { padding: 6px 3px; font-size: 11px; letter-spacing: -0.3px; }
-            .status-badge { top: auto; bottom: 12px; right: 10px; font-size: 10px; padding: 6px 10px; }
-            .modal-content { width: 92%; max-height: 85vh; padding: 14px; }
-        }
+        html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Malgun Gothic",sans-serif}#map{width:100%;height:100vh}.seo-sr-only{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}.control-panel{position:absolute;top:16px;left:16px;z-index:100;display:flex;flex-direction:column;gap:8px}.region-controls{display:flex;flex-wrap:nowrap;gap:6px;background:rgba(255,255,255,.95);padding:6px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.18);border:1px solid #cbd5e1}.btn-region,.btn-filter{flex:1;text-align:center;white-space:nowrap;border:none;background:#f1f5f9;color:#475569;padding:8px 10px;font-size:13px;font-weight:700;border-radius:6px;cursor:pointer;transition:all .2s ease}.btn-region:hover,.btn-filter:hover{background:#e2e8f0}.btn-region.active{background:#2563eb;color:#fff}.btn-filter.active{background:#0f172a;color:#fff}.btn-filter.fcfs-btn.active{background:#ea580c;color:#fff}.btn-filter.apt-btn.active{background:#16a34a;color:#fff}.btn-filter.old-btn.active{background:#4f46e5;color:#fff}.status-badge{position:absolute;top:16px;right:16px;z-index:100;background:rgba(15,23,42,.85);color:#fff;padding:8px 12px;border-radius:20px;font-size:11px;font-weight:700}.info-box{background:#fff;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.22);padding:10px 14px;border:1px solid #cbd5e1;min-width:180px;text-align:left;cursor:pointer;transition:transform .15s ease}.info-box:hover{transform:translateY(-2px)}.badge{display:inline-block;padding:3px 6px;font-size:11px;font-weight:700;border-radius:4px;color:#fff;margin-bottom:4px}.badge-apt{background:#16a34a}.badge-fcfs{background:#ea580c}.badge-check{background:#dc2626}.badge-old{background:#4f46e5}.title{font-weight:700;font-size:14px;color:#0f172a;margin-bottom:4px}.desc{font-size:11px;color:#475569;line-height:1.4}.click-hint{font-size:10px;color:#2563eb;margin-top:4px;font-weight:700}.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,.6);z-index:999;justify-content:center;align-items:center}.modal-content{background:#fff;width:92%;max-width:440px;max-height:88vh;overflow-y:auto;border-radius:12px;padding:20px;box-shadow:0 10px 30px rgba(0,0,0,.3);position:relative}.modal-close{position:absolute;top:14px;right:16px;font-size:22px;cursor:pointer;color:#64748b;background:0 0;border:none;line-height:1}.modal-title{font-size:17px;font-weight:700;color:#0f172a;margin-bottom:12px;padding-right:24px}.modal-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px}.modal-table th{text-align:left;color:#64748b;padding:6px 4px;border-bottom:1px solid #e2e8f0;width:85px}.modal-table td{color:#0f172a;padding:6px 4px;border-bottom:1px solid #e2e8f0}.expert-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;margin-bottom:14px}.expert-box-title{font-size:12px;font-weight:700;color:#0f172a;margin-bottom:6px}.expert-box-list{margin:0;padding-left:16px;font-size:11px;color:#334155;line-height:1.5}.staff-badge-btn{display:flex;align-items:center;justify-content:space-between;width:100%;font-size:12px;color:#1e40af;background:#eff6ff;border:1px solid #bfdbfe;padding:10px 12px;border-radius:8px;margin-bottom:8px;font-weight:700;cursor:pointer;box-sizing:border-box;text-align:left;transition:background .15s ease}.staff-badge-btn:hover{background:#dbeafe}.btn-realty-full{display:flex;align-items:center;justify-content:space-between;width:100%;padding:11px 12px;border:none;border-radius:8px;font-size:12px;font-weight:700;background:#0f172a;color:#fff;box-sizing:border-box;margin-bottom:8px;cursor:pointer;text-align:left}.btn-realty-full:hover{background:#1e293b}.consult-group{display:flex;gap:8px;margin-bottom:8px}.btn-kakao,.btn-call{flex:1;text-align:center;padding:10px 6px;border-radius:8px;font-size:11.5px;font-weight:700;text-decoration:none;box-sizing:border-box;letter-spacing:-.3px}.btn-kakao{background:#fee500;color:#191919}.btn-call{background:#2563eb;color:#fff}.modal-btn-link{display:block;text-align:center;font-size:11px;color:#475569;text-decoration:underline;margin-top:6px}.sub-back-btn{display:inline-block;background:#f1f5f9;color:#334155;border:1px solid #cbd5e1;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-bottom:12px}.profile-card{display:flex;align-items:center;gap:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;margin-bottom:12px}.profile-avatar{width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #2563eb;background:#e2e8f0;flex-shrink:0}.profile-placeholder{width:60px;height:60px;border-radius:50%;background:#dbeafe;color:#1e40af;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;flex-shrink:0}.condition-box{background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#7c2d12;line-height:1.5}.media-gallery{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}.media-gallery img{width:100%;border-radius:8px;border:1px solid #e2e8f0;object-fit:cover}.video-wrapper{position:relative;width:100%;padding-bottom:56.25%;height:0;border-radius:8px;overflow:hidden;margin-bottom:12px;background:#000}.video-wrapper iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0}.listing-grid{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}.listing-item-card{display:flex;gap:10px;align-items:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px}.listing-thumb{width:72px;height:58px;border-radius:6px;object-fit:cover;background:#e2e8f0;flex-shrink:0}.listing-text{font-size:12px;color:#0f172a;line-height:1.4;font-weight:500}@media (max-width:768px){.control-panel{top:8px;left:8px;right:8px;gap:4px}.region-controls{padding:4px;gap:3px}.btn-region,.btn-filter{padding:6px 3px;font-size:11px;letter-spacing:-.3px}.status-badge{top:auto;bottom:12px;right:10px;font-size:10px;padding:6px 10px}.modal-content{width:92%;max-height:85vh;padding:14px}}
     </style>
     <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=42553244187f3d43b01f98a4468460dc&libraries=services"></script>
 </head>
@@ -343,974 +15,261 @@
 
 <div class="control-panel">
     <div class="region-controls">
-        <button class="btn-region active" onclick="moveToRegion('busan', this)">부산·경남</button>
-        <button class="btn-region" onclick="moveToRegion('national', this)">전국 전체</button>
-        <button class="btn-region" onclick="moveToRegion('seoul', this)">수도권</button>
+        <button class="btn-region active" onclick="_0x4a1f('busan', this)">부산·경남</button>
+        <button class="btn-region" onclick="_0x4a1f('national', this)">전국 전체</button>
+        <button class="btn-region" onclick="_0x4a1f('seoul', this)">수도권</button>
     </div>
     <div class="region-controls">
-        <button class="btn-filter active" onclick="filterMarkers('all', this)">전체</button>
-        <button class="btn-filter apt-btn" onclick="filterMarkers('apt', this)">실시간 청약</button>
-        <button class="btn-filter fcfs-btn" onclick="filterMarkers('fcfs', this)">선착순·미분양</button>
-        <button class="btn-filter old-btn" onclick="filterMarkers('old', this)">입주완료</button>
+        <button class="btn-filter active" onclick="_0x8b2c('all', this)">전체</button>
+        <button class="btn-filter apt-btn" onclick="_0x8b2c('apt', this)">실시간 청약</button>
+        <button class="btn-filter fcfs-btn" onclick="_0x8b2c('fcfs', this)">선착순·미분양</button>
+        <button class="btn-filter old-btn" onclick="_0x8b2c('old', this)">입주완료</button>
     </div>
 </div>
 
 <div id="status" class="status-badge">실시간 분양 데이터 수집 중...</div>
 <div id="map"></div>
 
-<!-- 검색엔진(네이버·구글) 크롤링용 실시간 청약 및 선착순 현장 자동 색인 영역 -->
 <section id="seo-listing-directory" class="seo-sr-only" aria-label="실시간 청약 및 선착순 미분양 분양 단지 목록">
     <h1>부산·경남 및 전국 실시간 청약 · 선착순 미분양 분양지도</h1>
     <p>에코델타시티 아테라(24BL), 에코델타시티 중흥S-클래스 에듀리버(4BL), 에코델타시티 중흥S-클래스 리버시티(2BL), 부산 에코델타시티 16블록 중흥S-클래스, 에코델타시티 푸르지오 트레파크(11BL), 에코델타시티 대성베르힐(17BL), 부산에코델타시티 디에트르 더 퍼스트(28BL), 부산에코델타 7BL 호반써밋, 부산에코델타시티 대방 엘리움 리버뷰(31BL), 에코델타시티 푸르지오 린(27BL), 강서자이 에코델타(20BL), 에코델타 스마트시티 수자인(21BL), 명지국제신도시 A2블록 금강펜테리움 센트럴파크3, 부산명지 행복주택, 연제 갤러리자이 등 실시간 청약 및 선착순 동호수 지정 분양 안내.</p>
     <ul id="seoDynamicList"></ul>
 </section>
 
-<div id="modalOverlay" class="modal-overlay" onclick="closeModal(event)">
+<div id="modalOverlay" class="modal-overlay" onclick="_0x9d3e(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
-        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <button class="modal-close" onclick="_0x9d3e()">&times;</button>
         <div id="modalBody"></div>
     </div>
 </div>
 
 <script>
-    var mapContainer = document.getElementById('map');
-    var mapOption = {
-        center: new kakao.maps.LatLng(35.1795543, 129.0756416),
-        level: 8
+(function(_0x1c9a){
+    var _0x5f2d = function(_0x7e){ return decodeURIComponent(escape(atob(_0x7e))); };
+    var _0x3b8e = [
+        _0x5f2d("aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20vc3ByZWFkc2hlZXRzL2QvZS8yUEFDWC0xdlM5aTBYYXVHVGxMNkpXRlNqS3gwdHJYNkxBbncrX2h2YjZMVjNZRWUxUktXblpMU3h5aTJzemhhWWFIeXJTcURqNXJ3ZElaTHVPNTNWdC9wdWI/Z2lkPTAmc2luZ2xlPXRydWUmb3V0cHV0PWNzdg=="),
+        _0x5f2d("OTM1ZGU1YzIzNTk4YTkxNGRkOTcxNDlhMGI5MjYxNGRiN2Y0ZGUyOGQ5OTFkNjU4ZDU4ZGZhY2EwM2JhZDNhNw=="),
+        _0x5f2d("aHR0cHM6Ly9hcGkub2RjbG91ZC5rci9hcGkvQXBwbHlob21lSW5mb0RldGFpbFN2Yy92MS9nZXRBUFRMdHRvdFBibGFuY0RldGFpbD9wZXJQYWdlPTEwMDAmc2VydmljZUtleT0="),
+        _0x5f2d("aHR0cHM6Ly9vcGVuLmtha2FvLmNvbS9vL3NnNFpCM1dp"),
+        _0x5f2d("MDEwLTM5NzQtNzA4Nw==")
+    ];
+    var _0x91 = new kakao.maps.Map(document.getElementById('map'), { center: new kakao.maps.LatLng(35.1795543, 129.0756416), level: 8 });
+    var _0x92 = new kakao.maps.services.Geocoder();
+    var _0x93 = new kakao.maps.services.Places();
+    var _0x94 = [], _0x95 = 'busan', _0x96 = 'all', _0x97 = 0, _0x98 = 0, _0x99 = null, _0x9a = null, _0x9b = [];
+
+    var _0x2a = [
+        {HOUSE_NM:"에코델타시티 중흥S-클래스 에듀리버",HSSPLY_ADRES:"부산광역시 강서구 강동동 일원 (에코델타시티 4BL)",TOT_SUPLY_HSHLDCO:"728",RCEPT_BGNDE:"2025-05-19",RCEPT_ENDDE:"2025-05-21",PRZWNER_PRESN_DATE:"2025-05-28",CNTRCT_CNCLS_BGNDE:"2025-06-09",CNTRCT_CNCLS_ENDDE:"2025-06-11",BSNS_MBY_NM:"중흥토건(주)"},
+        {HOUSE_NM:"에코델타시티 푸르지오 린",HSSPLY_ADRES:"부산광역시 강서구 강동동 일원 (에코델타시티 27BL)",TOT_SUPLY_HSHLDCO:"886",RCEPT_BGNDE:"2023-02-20",RCEPT_ENDDE:"2023-02-22",PRZWNER_PRESN_DATE:"2023-02-28",CNTRCT_CNCLS_BGNDE:"2023-03-13",CNTRCT_CNCLS_ENDDE:"2023-03-16",BSNS_MBY_NM:"(주)대우건설·우미건설(주)"},
+        {HOUSE_NM:"강서자이 에코델타",HSSPLY_ADRES:"부산광역시 강서구 강동동 일원 (에코델타시티 20BL)",TOT_SUPLY_HSHLDCO:"856",RCEPT_BGNDE:"2022-06-07",RCEPT_ENDDE:"2022-06-09",PRZWNER_PRESN_DATE:"2022-06-16",CNTRCT_CNCLS_BGNDE:"2022-06-27",CNTRCT_CNCLS_ENDDE:"2022-07-02",BSNS_MBY_NM:"GS건설(주)"},
+        {HOUSE_NM:"에코델타 스마트시티 수자인",HSSPLY_ADRES:"부산광역시 강서구 강동동 일원 (에코델타시티 21BL)",TOT_SUPLY_HSHLDCO:"554",RCEPT_BGNDE:"2021-11-22",RCEPT_ENDDE:"2021-11-24",PRZWNER_PRESN_DATE:"2021-12-01",CNTRCT_CNCLS_BGNDE:"2021-12-13",CNTRCT_CNCLS_ENDDE:"2021-12-17",BSNS_MBY_NM:"(주)한양"},
+        {HOUSE_NM:"에코델타시티 푸르지오 센터파크",HSSPLY_ADRES:"부산광역시 강서구 강동동 일원 (에코델타시티 18BL)",TOT_SUPLY_HSHLDCO:"972",RCEPT_BGNDE:"2022-10-31",RCEPT_ENDDE:"2022-11-02",PRZWNER_PRESN_DATE:"2022-11-09",CNTRCT_CNCLS_BGNDE:"2022-11-21",CNTRCT_CNCLS_ENDDE:"2022-11-25",BSNS_MBY_NM:"(주)대우건설"},
+        {HOUSE_NM:"e편한세상 에코델타 센터포인트",HSSPLY_ADRES:"부산광역시 강서구 강동동 일원 (에코델타시티 19BL)",TOT_SUPLY_HSHLDCO:"953",RCEPT_BGNDE:"2022-07-04",RCEPT_ENDDE:"2022-07-06",PRZWNER_PRESN_DATE:"2022-07-13",CNTRCT_CNCLS_BGNDE:"2022-07-25",CNTRCT_CNCLS_ENDDE:"2022-07-30",BSNS_MBY_NM:"DL이앤씨(주)"},
+        {HOUSE_NM:"연제 갤러리자이",HSSPLY_ADRES:"부산광역시 연제구 연산동 1124-2",TOT_SUPLY_HSHLDCO:"-",RCEPT_BGNDE:"-",RCEPT_ENDDE:"-",PRZWNER_PRESN_DATE:"-",CNTRCT_CNCLS_BGNDE:"-",CNTRCT_CNCLS_ENDDE:"2025-12-31",BSNS_MBY_NM:"GS건설(주)"}
+    ];
+
+    var _0x2b = [
+        {k:["센트럴파크3","A2블록","A2BL"],x:35.103514,y:128.922287},{k:["부산명지행복주택","명지행복주택"],x:35.089513,y:128.898588},
+        {k:["16블록","16BL"],x:35.152946,y:128.915357},{k:["에듀리버"],x:35.153298,y:128.907893},
+        {k:["리버시티"],x:35.156589,y:128.907470},{k:["아테라","24블록","24BL"],x:35.149951,y:128.919489},
+        {k:["호반써밋","호반"],x:35.138334,y:128.907296},{k:["더베르힐","대성베르힐","베르힐","17블록","17BL"],x:35.149888,y:128.915784},
+        {k:["디에트르","28블록","28BL"],x:35.149797,y:128.922420},{k:["트레파크","트래파크","11블록","11BL"],x:35.152678,y:128.911186},
+        {k:["대방엘리움","엘리움","31블록","31BL"],x:35.140561,y:128.927414},{k:["푸르지오린","27블록","27BL"],x:35.141408,y:128.919195},
+        {k:["강서자이","20블록","20BL"],x:35.142429,y:128.915028},{k:["수자인","21블록","21BL"],x:35.139678,y:128.915775},
+        {k:["센터파크","18블록","18BL"],x:35.146550,y:128.915650},{k:["센터포인트","19블록","19BL"],x:35.144450,y:128.915350}
+    ];
+
+    var _0x2c = [
+        {k:"초량",r:"동구",q:"부산광역시 동구 초량동",x:35.1185,y:129.0398},{k:"장안",r:"기장군",q:"부산광역시 기장군 장안읍",x:35.3315,y:129.2475},
+        {k:"일광",r:"기장군",q:"부산광역시 기장군 일광읍",x:35.2635,y:129.2312},{k:"정관",r:"기장군",q:"부산광역시 기장군 정관읍",x:35.3218,y:129.1795},
+        {k:"기장",r:"기장군",q:"부산광역시 기장군 기장읍",x:35.2445,y:129.2222},{k:"김해",r:"김해시",q:"경상남도 김해시",x:35.2285,y:128.8894},
+        {k:"장유",r:"김해시",q:"경상남도 김해시 장유동",x:35.1975,y:128.8055},{k:"율하",r:"김해시",q:"경상남도 김해시 율하동",x:35.1745,y:128.8215},
+        {k:"양산",r:"양산시",q:"경상남도 양산시",x:35.3350,y:129.0372},{k:"사송",r:"양산시",q:"경상남도 양산시 동면 사송리",x:35.3085,y:129.0585},
+        {k:"물금",r:"양산시",q:"경상남도 양산시 물금읍",x:35.3125,y:129.0065},{k:"창원",r:"창원시",q:"경상남도 창원시",x:35.2279,y:128.6818},
+        {k:"거제",r:"거제시",q:"경상남도 거제시",x:34.8806,y:128.6211},{k:"연제",r:"연제구",q:"부산광역시 연제구 연산동",x:35.1763,y:129.0798},
+        {k:"연산",r:"연제구",q:"부산광역시 연제구 연산동",x:35.1825,y:129.0815},{k:"엄궁",r:"사상구",q:"부산광역시 사상구 엄궁동",x:35.1268,y:128.9710},
+        {k:"사상",r:"사상구",q:"부산광역시 사상구",x:35.1526,y:128.9912},{k:"해운대",r:"해운대구",q:"부산광역시 해운대구",x:35.1631,y:129.1636},
+        {k:"센텀",r:"해운대구",q:"부산광역시 해운대구 재송동",x:35.1755,y:129.1295},{k:"수영",r:"수영구",q:"부산광역시 수영구",x:35.1456,y:129.1131},
+        {k:"광안",r:"수영구",q:"부산광역시 수영구 광안동",x:35.1578,y:129.1155},{k:"동래",r:"동래구",q:"부산광역시 동래구",x:35.2048,y:129.0837},
+        {k:"온천장",r:"동래구",q:"부산광역시 동래구 온천동",x:35.2202,y:129.0825},{k:"대연",r:"남구",q:"부산광역시 남구 대연동",x:35.1365,y:129.0955},
+        {k:"문현",r:"남구",q:"부산광역시 남구 문현동",x:35.1385,y:129.0655},{k:"화명",r:"북구",q:"부산광역시 북구 화명동",x:35.2355,y:129.0125},
+        {k:"덕천",r:"북구",q:"부산광역시 북구 덕천동",x:35.2115,y:129.0055},{k:"하단",r:"사하구",q:"부산광역시 사하구 하단동",x:35.1065,y:128.9665},
+        {k:"괴정",r:"사하구",q:"부산광역시 사하구 괴정동",x:35.0995,y:128.9925},{k:"장림",r:"사하구",q:"부산광역시 사하구 장림동",x:35.0815,y:128.9685},
+        {k:"다대",r:"사하구",q:"부산광역시 사하구 다대동",x:35.0565,y:128.9685},{k:"서면",r:"부산진구",q:"부산광역시 부산진구 부전동",x:35.1578,y:129.0595},
+        {k:"양정",r:"부산진구",q:"부산광역시 부산진구 양정동",x:35.1725,y:129.0705},{k:"가야",r:"부산진구",q:"부산광역시 부산진구 가야동",x:35.1545,y:129.0345},
+        {k:"부암",r:"부산진구",q:"부산광역시 부산진구 부암동",x:35.1645,y:129.0465},{k:"범일",r:"동구",q:"부산광역시 동구 범일동",x:35.1415,y:129.0585},
+        {k:"영도",r:"영도구",q:"부산광역시 영도구",x:35.0912,y:129.0679},{k:"금정",r:"금정구",q:"부산광역시 금정구",x:35.2428,y:129.0921},
+        {k:"장전",r:"금정구",q:"부산광역시 금정구 장전동",x:35.2315,y:129.0865},{k:"울산",r:"울산",q:"울산광역시",x:35.5384,y:129.3114}
+    ];
+
+    function _0x31(s){return(s||"").replace(/[\s\-\(\)·]/g,"");}
+    function _0x32(n){var d=new Date();d.setFullYear(d.getFullYear()-n);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+String(d.getDate()).padStart(2,'0');}
+    var _0x33=_0x32(0),_0x34=_0x32(2),_0x35=_0x32(5);
+
+    function _0x36(a,t){
+        if(t==='national')return true;if(!a)return false;var c=a.trim();
+        if(t==='busan')return c.indexOf("부산")===0||c.indexOf("울산")===0||c.indexOf("경상남도")===0||c.indexOf("경남")===0||c.indexOf("거제")!==-1||c.indexOf("창원")!==-1||c.indexOf("김해")!==-1||c.indexOf("양산")!==-1||c.indexOf("진주")!==-1||c.indexOf("통영")!==-1||c.indexOf("사천")!==-1||c.indexOf("밀양")!==-1;
+        if(t==='seoul')return c.indexOf("서울")===0||c.indexOf("인천")===0||c.indexOf("경기도")===0||c.indexOf("경기 ")===0;
+        return true;
+    }
+    function _0x37(a){if(!a)return false;var c=a.trim();return c.indexOf("강원")===0||c.indexOf("전라남도")===0||c.indexOf("전남")===0;}
+    function _0x38(e){if(!e||e>=_0x33)return 'apt';var df=(new Date(_0x33)-new Date(e))/86400000;if(df<=365)return 'fcfs';if(df<1095)return 'check';return 'old';}
+    function _0x39(p){
+        var a=p.HSSPLY_ADRES||"",r=p.RCEPT_BGNDE||p.CNTRCT_CNCLS_ENDDE||p.RCRIT_PBLANC_DE||"",s=_0x38(p.CNTRCT_CNCLS_ENDDE||"");
+        if(_0x36(a,'busan'))return(!r||r==="-")?true:r>=_0x35;
+        if(_0x36(a,'seoul'))return(!r||r==="-")?true:r>=_0x34;
+        if(_0x37(a))return s==='apt';
+        return s==='apt'||s==='fcfs';
+    }
+    function _0x3a(it){
+        var el=document.getElementById('seoDynamicList'),kw=document.getElementById('dynamicKeywords');if(!el)return;
+        var nm=[],ht=[];
+        it.forEach(function(p){var s=_0x38(p.CNTRCT_CNCLS_ENDDE||"");if(s==='apt'||s==='fcfs'){var n=p.HOUSE_NM||"",a=p.HSSPLY_ADRES||"",lb=s==='apt'?"실시간 청약 진행중":"선착순 계약 · 잔여세대 분양";if(n){nm.push(n);ht.push("<li><strong>"+n+"</strong> ("+a+") - "+lb+"</li>");}}});
+        el.innerHTML=ht.join("");if(kw&&nm.length>0)kw.setAttribute("content","부산 선착순 분양지도, 부산 미분양 아파트, 실시간 청약, "+nm.slice(0,60).join(", "));
+    }
+    function _0x3b(st,ft){if(ft==='all')return true;if(ft==='apt')return st==='apt';if(ft==='fcfs')return st==='fcfs'||st==='check';if(ft==='old')return st==='old';return true;}
+    function _0x3c(){
+        var v=0;_0x94.forEach(function(i){var sh=_0x36(i.addr,_0x95)&&_0x3b(i.statusType,_0x96);i.marker.setMap(sh?_0x91:null);i.overlay.setMap(sh?_0x91:null);if(sh)v++;});
+        var lb=_0x95==='busan'?'부산·경남':_0x95==='seoul'?'수도권':'전국';
+        document.getElementById('status').innerText=lb+" 표시: "+v+"곳"+(_0x98<_0x97?" (로딩 중...)":"");
+    }
+    _0x1c9a._0x4a1f=function(t,el){
+        _0x95=t;document.querySelectorAll('.btn-region').forEach(function(b){b.classList.remove('active');});el.classList.add('active');
+        if(t==='busan'){_0x91.setLevel(8);_0x91.panTo(new kakao.maps.LatLng(35.1795543,129.0756416));}
+        else if(t==='national'){_0x91.setLevel(12);_0x91.panTo(new kakao.maps.LatLng(36.3504,127.3845));}
+        else if(t==='seoul'){_0x91.setLevel(9);_0x91.panTo(new kakao.maps.LatLng(37.5665,126.9780));}
+        _0x3c();
     };
-    var map = new kakao.maps.Map(mapContainer, mapOption);
-    var geocoder = new kakao.maps.services.Geocoder();
-    var places = new kakao.maps.services.Places();
-
-    var allMarkerItems = [];
-    var currentRegion = 'busan';
-    var currentFilter = 'all';
-    var totalTargetCount = 0;
-    var loadedCount = 0;
-    var activeModalApt = null;
-    var activeModalStatus = null;
-
-    var mustIncludeList = [
-        {
-            HOUSE_NM: "에코델타시티 중흥S-클래스 에듀리버",
-            HSSPLY_ADRES: "부산광역시 강서구 강동동 일원 (에코델타시티 4BL)",
-            TOT_SUPLY_HSHLDCO: "728",
-            RCEPT_BGNDE: "2025-05-19",
-            RCEPT_ENDDE: "2025-05-21",
-            PRZWNER_PRESN_DATE: "2025-05-28",
-            CNTRCT_CNCLS_BGNDE: "2025-06-09",
-            CNTRCT_CNCLS_ENDDE: "2025-06-11",
-            BSNS_MBY_NM: "중흥토건(주)"
-        },
-        {
-            HOUSE_NM: "에코델타시티 푸르지오 린",
-            HSSPLY_ADRES: "부산광역시 강서구 강동동 일원 (에코델타시티 27BL)",
-            TOT_SUPLY_HSHLDCO: "886",
-            RCEPT_BGNDE: "2023-02-20",
-            RCEPT_ENDDE: "2023-02-22",
-            PRZWNER_PRESN_DATE: "2023-02-28",
-            CNTRCT_CNCLS_BGNDE: "2023-03-13",
-            CNTRCT_CNCLS_ENDDE: "2023-03-16",
-            BSNS_MBY_NM: "(주)대우건설·우미건설(주)"
-        },
-        {
-            HOUSE_NM: "강서자이 에코델타",
-            HSSPLY_ADRES: "부산광역시 강서구 강동동 일원 (에코델타시티 20BL)",
-            TOT_SUPLY_HSHLDCO: "856",
-            RCEPT_BGNDE: "2022-06-07",
-            RCEPT_ENDDE: "2022-06-09",
-            PRZWNER_PRESN_DATE: "2022-06-16",
-            CNTRCT_CNCLS_BGNDE: "2022-06-27",
-            CNTRCT_CNCLS_ENDDE: "2022-07-02",
-            BSNS_MBY_NM: "GS건설(주)"
-        },
-        {
-            HOUSE_NM: "에코델타 스마트시티 수자인",
-            HSSPLY_ADRES: "부산광역시 강서구 강동동 일원 (에코델타시티 21BL)",
-            TOT_SUPLY_HSHLDCO: "554",
-            RCEPT_BGNDE: "2021-11-22",
-            RCEPT_ENDDE: "2021-11-24",
-            PRZWNER_PRESN_DATE: "2021-12-01",
-            CNTRCT_CNCLS_BGNDE: "2021-12-13",
-            CNTRCT_CNCLS_ENDDE: "2021-12-17",
-            BSNS_MBY_NM: "(주)한양"
-        },
-        {
-            HOUSE_NM: "에코델타시티 푸르지오 센터파크",
-            HSSPLY_ADRES: "부산광역시 강서구 강동동 일원 (에코델타시티 18BL)",
-            TOT_SUPLY_HSHLDCO: "972",
-            RCEPT_BGNDE: "2022-10-31",
-            RCEPT_ENDDE: "2022-11-02",
-            PRZWNER_PRESN_DATE: "2022-11-09",
-            CNTRCT_CNCLS_BGNDE: "2022-11-21",
-            CNTRCT_CNCLS_ENDDE: "2022-11-25",
-            BSNS_MBY_NM: "(주)대우건설"
-        },
-        {
-            HOUSE_NM: "e편한세상 에코델타 센터포인트",
-            HSSPLY_ADRES: "부산광역시 강서구 강동동 일원 (에코델타시티 19BL)",
-            TOT_SUPLY_HSHLDCO: "953",
-            RCEPT_BGNDE: "2022-07-04",
-            RCEPT_ENDDE: "2022-07-06",
-            PRZWNER_PRESN_DATE: "2022-07-13",
-            CNTRCT_CNCLS_BGNDE: "2022-07-25",
-            CNTRCT_CNCLS_ENDDE: "2022-07-30",
-            BSNS_MBY_NM: "DL이앤씨(주)"
-        },
-        {
-            HOUSE_NM: "연제 갤러리자이",
-            HSSPLY_ADRES: "부산광역시 연제구 연산동 1124-2",
-            TOT_SUPLY_HSHLDCO: "-",
-            RCEPT_BGNDE: "-",
-            RCEPT_ENDDE: "-",
-            PRZWNER_PRESN_DATE: "-",
-            CNTRCT_CNCLS_BGNDE: "-",
-            CNTRCT_CNCLS_ENDDE: "2025-12-31",
-            BSNS_MBY_NM: "GS건설(주)"
-        }
-    ];
-
-    var gangseoExactCoords = [
-        { keywords: ["센트럴파크3", "A2블록", "A2BL"], lat: 35.103514, lng: 128.922287 },
-        { keywords: ["부산명지행복주택", "명지행복주택"], lat: 35.089513, lng: 128.898588 },
-        { keywords: ["16블록", "16BL"], lat: 35.152946, lng: 128.915357 },
-        { keywords: ["에듀리버"], lat: 35.153298, lng: 128.907893 },
-        { keywords: ["리버시티"], lat: 35.156589, lng: 128.907470 },
-        { keywords: ["아테라", "24블록", "24BL"], lat: 35.149951, lng: 128.919489 },
-        { keywords: ["호반써밋", "호반"], lat: 35.138334, lng: 128.907296 },
-        { keywords: ["더베르힐", "대성베르힐", "베르힐", "17블록", "17BL"], lat: 35.149888, lng: 128.915784 },
-        { keywords: ["디에트르", "28블록", "28BL"], lat: 35.149797, lng: 128.922420 },
-        { keywords: ["트레파크", "트래파크", "11블록", "11BL"], lat: 35.152678, lng: 128.911186 },
-        { keywords: ["대방엘리움", "엘리움", "31블록", "31BL"], lat: 35.140561, lng: 128.927414 },
-        { keywords: ["푸르지오린", "27블록", "27BL"], lat: 35.141408, lng: 128.919195 },
-        { keywords: ["강서자이", "20블록", "20BL"], lat: 35.142429, lng: 128.915028 },
-        { keywords: ["수자인", "21블록", "21BL"], lat: 35.139678, lng: 128.915775 },
-        { keywords: ["센터파크", "18블록", "18BL"], lat: 35.146550, lng: 128.915650 },
-        { keywords: ["센터포인트", "19블록", "19BL"], lat: 35.144450, lng: 128.915350 }
-    ];
-
-    var titleRegionHints = [
-        { keyword: "초량", expectedRegion: "동구", fallbackQuery: "부산광역시 동구 초량동", fallbackLat: 35.1185, fallbackLng: 129.0398 },
-        { keyword: "장안", expectedRegion: "기장군", fallbackQuery: "부산광역시 기장군 장안읍", fallbackLat: 35.3315, fallbackLng: 129.2475 },
-        { keyword: "일광", expectedRegion: "기장군", fallbackQuery: "부산광역시 기장군 일광읍", fallbackLat: 35.2635, fallbackLng: 129.2312 },
-        { keyword: "정관", expectedRegion: "기장군", fallbackQuery: "부산광역시 기장군 정관읍", fallbackLat: 35.3218, fallbackLng: 129.1795 },
-        { keyword: "기장", expectedRegion: "기장군", fallbackQuery: "부산광역시 기장군 기장읍", fallbackLat: 35.2445, fallbackLng: 129.2222 },
-        { keyword: "김해", expectedRegion: "김해시", fallbackQuery: "경상남도 김해시", fallbackLat: 35.2285, fallbackLng: 128.8894 },
-        { keyword: "장유", expectedRegion: "김해시", fallbackQuery: "경상남도 김해시 장유동", fallbackLat: 35.1975, fallbackLng: 128.8055 },
-        { keyword: "율하", expectedRegion: "김해시", fallbackQuery: "경상남도 김해시 율하동", fallbackLat: 35.1745, fallbackLng: 128.8215 },
-        { keyword: "양산", expectedRegion: "양산시", fallbackQuery: "경상남도 양산시", fallbackLat: 35.3350, fallbackLng: 129.0372 },
-        { keyword: "사송", expectedRegion: "양산시", fallbackQuery: "경상남도 양산시 동면 사송리", fallbackLat: 35.3085, fallbackLng: 129.0585 },
-        { keyword: "물금", expectedRegion: "양산시", fallbackQuery: "경상남도 양산시 물금읍", fallbackLat: 35.3125, fallbackLng: 129.0065 },
-        { keyword: "창원", expectedRegion: "창원시", fallbackQuery: "경상남도 창원시", fallbackLat: 35.2279, fallbackLng: 128.6818 },
-        { keyword: "거제", expectedRegion: "거제시", fallbackQuery: "경상남도 거제시", fallbackLat: 34.8806, fallbackLng: 128.6211 },
-        { keyword: "연제", expectedRegion: "연제구", fallbackQuery: "부산광역시 연제구 연산동", fallbackLat: 35.1763, fallbackLng: 129.0798 },
-        { keyword: "연산", expectedRegion: "연제구", fallbackQuery: "부산광역시 연제구 연산동", fallbackLat: 35.1825, fallbackLng: 129.0815 },
-        { keyword: "엄궁", expectedRegion: "사상구", fallbackQuery: "부산광역시 사상구 엄궁동", fallbackLat: 35.1268, fallbackLng: 128.9710 },
-        { keyword: "사상", expectedRegion: "사상구", fallbackQuery: "부산광역시 사상구", fallbackLat: 35.1526, fallbackLng: 128.9912 },
-        { keyword: "해운대", expectedRegion: "해운대구", fallbackQuery: "부산광역시 해운대구", fallbackLat: 35.1631, fallbackLng: 129.1636 },
-        { keyword: "센텀", expectedRegion: "해운대구", fallbackQuery: "부산광역시 해운대구 재송동", fallbackLat: 35.1755, fallbackLng: 129.1295 },
-        { keyword: "수영", expectedRegion: "수영구", fallbackQuery: "부산광역시 수영구", fallbackLat: 35.1456, fallbackLng: 129.1131 },
-        { keyword: "광안", expectedRegion: "수영구", fallbackQuery: "부산광역시 수영구 광안동", fallbackLat: 35.1578, fallbackLng: 129.1155 },
-        { keyword: "동래", expectedRegion: "동래구", fallbackQuery: "부산광역시 동래구", fallbackLat: 35.2048, fallbackLng: 129.0837 },
-        { keyword: "온천장", expectedRegion: "동래구", fallbackQuery: "부산광역시 동래구 온천동", fallbackLat: 35.2202, fallbackLng: 129.0825 },
-        { keyword: "대연", expectedRegion: "남구", fallbackQuery: "부산광역시 남구 대연동", fallbackLat: 35.1365, fallbackLng: 129.0955 },
-        { keyword: "문현", expectedRegion: "남구", fallbackQuery: "부산광역시 남구 문현동", fallbackLat: 35.1385, fallbackLng: 129.0655 },
-        { keyword: "화명", expectedRegion: "북구", fallbackQuery: "부산광역시 북구 화명동", fallbackLat: 35.2355, fallbackLng: 129.0125 },
-        { keyword: "덕천", expectedRegion: "북구", fallbackQuery: "부산광역시 북구 덕천동", fallbackLat: 35.2115, fallbackLng: 129.0055 },
-        { keyword: "하단", expectedRegion: "사하구", fallbackQuery: "부산광역시 사하구 하단동", fallbackLat: 35.1065, fallbackLng: 128.9665 },
-        { keyword: "괴정", expectedRegion: "사하구", fallbackQuery: "부산광역시 사하구 괴정동", fallbackLat: 35.0995, fallbackLng: 128.9925 },
-        { keyword: "장림", expectedRegion: "사하구", fallbackQuery: "부산광역시 사하구 장림동", fallbackLat: 35.0815, fallbackLng: 128.9685 },
-        { keyword: "다대", expectedRegion: "사하구", fallbackQuery: "부산광역시 사하구 다대동", fallbackLat: 35.0565, fallbackLng: 128.9685 },
-        { keyword: "서면", expectedRegion: "부산진구", fallbackQuery: "부산광역시 부산진구 부전동", fallbackLat: 35.1578, fallbackLng: 129.0595 },
-        { keyword: "양정", expectedRegion: "부산진구", fallbackQuery: "부산광역시 부산진구 양정동", fallbackLat: 35.1725, fallbackLng: 129.0705 },
-        { keyword: "가야", expectedRegion: "부산진구", fallbackQuery: "부산광역시 부산진구 가야동", fallbackLat: 35.1545, fallbackLng: 129.0345 },
-        { keyword: "부암", expectedRegion: "부산진구", fallbackQuery: "부산광역시 부산진구 부암동", fallbackLat: 35.1645, fallbackLng: 129.0465 },
-        { keyword: "범일", expectedRegion: "동구", fallbackQuery: "부산광역시 동구 범일동", fallbackLat: 35.1415, fallbackLng: 129.0585 },
-        { keyword: "영도", expectedRegion: "영도구", fallbackQuery: "부산광역시 영도구", fallbackLat: 35.0912, fallbackLng: 129.0679 },
-        { keyword: "금정", expectedRegion: "금정구", fallbackQuery: "부산광역시 금정구", fallbackLat: 35.2428, fallbackLng: 129.0921 },
-        { keyword: "장전", expectedRegion: "금정구", fallbackQuery: "부산광역시 금정구 장전동", fallbackLat: 35.2315, fallbackLng: 129.0865 },
-        { keyword: "울산", expectedRegion: "울산", fallbackQuery: "울산광역시", fallbackLat: 35.5384, fallbackLng: 129.3114 }
-    ];
-
-    function normalizeName(str) {
-        return (str || "").replace(/[\s\-\(\)·]/g, "");
-    }
-
-    function getDateYearsAgo(years) {
-        var now = new Date();
-        now.setFullYear(now.getFullYear() - years);
-        var y = now.getFullYear();
-        var m = String(now.getMonth() + 1).padStart(2, '0');
-        var d = String(now.getDate()).padStart(2, '0');
-        return `${y}-${m}-${d}`;
-    }
-
-    var todayStr = getDateYearsAgo(0);
-    var twoYearsAgoStr = getDateYearsAgo(2);
-    var fiveYearsAgoStr = getDateYearsAgo(5);
-
-    function matchRegion(addr, regionType) {
-        if (regionType === 'national') return true;
-        if (!addr) return false;
-        var clean = addr.trim();
-
-        if (regionType === 'busan') {
-            return clean.indexOf("부산") === 0 ||
-                   clean.indexOf("울산") === 0 ||
-                   clean.indexOf("경상남도") === 0 ||
-                   clean.indexOf("경남") === 0 ||
-                   clean.indexOf("거제") !== -1 ||
-                   clean.indexOf("창원") !== -1 ||
-                   clean.indexOf("김해") !== -1 ||
-                   clean.indexOf("양산") !== -1 ||
-                   clean.indexOf("진주") !== -1 ||
-                   clean.indexOf("통영") !== -1 ||
-                   clean.indexOf("사천") !== -1 ||
-                   clean.indexOf("밀양") !== -1;
-        }
-
-        if (regionType === 'seoul') {
-            return clean.indexOf("서울") === 0 ||
-                   clean.indexOf("인천") === 0 ||
-                   clean.indexOf("경기도") === 0 ||
-                   clean.indexOf("경기 ") === 0;
-        }
-
-        return true;
-    }
-
-    function isGangwonOrJeonnam(addr) {
-        if (!addr) return false;
-        var clean = addr.trim();
-        return clean.indexOf("강원") === 0 || clean.indexOf("전라남도") === 0 || clean.indexOf("전남") === 0;
-    }
-
-    function getAptStatus(contractEndStr) {
-        if (!contractEndStr || contractEndStr >= todayStr) return 'apt';
-        var today = new Date(todayStr);
-        var endDate = new Date(contractEndStr);
-        var diffDays = (today - endDate) / (1000 * 60 * 60 * 24);
-        if (diffDays <= 365) return 'fcfs';
-        if (diffDays < 1095) return 'check';
-        return 'old';
-    }
-
-    function shouldIncludeByRegionRule(apt) {
-        var addr = apt.HSSPLY_ADRES || "";
-        var refDate = apt.RCEPT_BGNDE || apt.CNTRCT_CNCLS_ENDDE || apt.RCRIT_PBLANC_DE || "";
-        var statusType = getAptStatus(apt.CNTRCT_CNCLS_ENDDE || "");
-
-        if (matchRegion(addr, 'busan')) {
-            if (!refDate || refDate === "-") return true;
-            return refDate >= fiveYearsAgoStr;
-        }
-
-        if (matchRegion(addr, 'seoul')) {
-            if (!refDate || refDate === "-") return true;
-            return refDate >= twoYearsAgoStr;
-        }
-
-        if (isGangwonOrJeonnam(addr)) {
-            return statusType === 'apt';
-        }
-
-        return statusType === 'apt' || statusType === 'fcfs';
-    }
-
-    function populateSeoDirectory(items) {
-        var listEl = document.getElementById('seoDynamicList');
-        var kwMeta = document.getElementById('dynamicKeywords');
-        if (!listEl) return;
-
-        var activeNames = [];
-        var htmlParts = [];
-
-        items.forEach(function(apt) {
-            var statusType = getAptStatus(apt.CNTRCT_CNCLS_ENDDE || "");
-            if (statusType === 'apt' || statusType === 'fcfs') {
-                var name = apt.HOUSE_NM || "";
-                var addr = apt.HSSPLY_ADRES || "";
-                var statusLabel = statusType === 'apt' ? "실시간 청약 진행중" : "선착순 계약 · 잔여세대 분양";
-                if (name) {
-                    activeNames.push(name);
-                    htmlParts.push(`<li><strong>${name}</strong> (${addr}) - ${statusLabel}</li>`);
-                }
-            }
-        });
-
-        listEl.innerHTML = htmlParts.join("");
-        if (kwMeta && activeNames.length > 0) {
-            kwMeta.setAttribute("content", "부산 선착순 분양지도, 부산 미분양 아파트, 실시간 청약, " + activeNames.slice(0, 60).join(", "));
-        }
-    }
-
-    // [4칸 세분화 필터링: 전체 / 실시간 청약 / 선착순·미분양 / 입주완료]
-    function checkFilterMatch(itemStatusType, filterType) {
-        if (filterType === 'all') return true;
-        if (filterType === 'apt') return itemStatusType === 'apt';
-        if (filterType === 'fcfs') return itemStatusType === 'fcfs' || itemStatusType === 'check';
-        if (filterType === 'old') return itemStatusType === 'old';
-        return true;
-    }
-
-    function applyFilters() {
-        var visibleCount = 0;
-        allMarkerItems.forEach(function(item) {
-            var regionMatch = matchRegion(item.addr, currentRegion);
-            var typeMatch = checkFilterMatch(item.statusType, currentFilter);
-
-            var shouldShow = regionMatch && typeMatch;
-            item.marker.setMap(shouldShow ? map : null);
-            item.overlay.setMap(shouldShow ? map : null);
-
-            if (shouldShow) visibleCount++;
-        });
-
-        var regionLabel = currentRegion === 'busan' ? '부산·경남'
-                        : currentRegion === 'seoul' ? '수도권'
-                        : '전국';
-
-        if (loadedCount < totalTargetCount) {
-            document.getElementById('status').innerText = regionLabel + " 표시: " + visibleCount + "곳 (로딩 중...)";
-        } else {
-            document.getElementById('status').innerText = regionLabel + " 표시: " + visibleCount + "곳";
-        }
-    }
-
-    function moveToRegion(type, element) {
-        currentRegion = type;
-        document.querySelectorAll('.btn-region').forEach(function(btn) {
-            btn.classList.remove('active');
-        });
-        element.classList.add('active');
-
-        if (type === 'busan') {
-            map.setLevel(8);
-            map.panTo(new kakao.maps.LatLng(35.1795543, 129.0756416));
-        } else if (type === 'national') {
-            map.setLevel(12);
-            map.panTo(new kakao.maps.LatLng(36.3504, 127.3845));
-        } else if (type === 'seoul') {
-            map.setLevel(9);
-            map.panTo(new kakao.maps.LatLng(37.5665, 126.9780));
-        }
-
-        applyFilters();
-    }
-
-    function filterMarkers(filterType, element) {
-        currentFilter = filterType;
-        document.querySelectorAll('.btn-filter').forEach(function(btn) {
-            btn.classList.remove('active');
-        });
-        element.classList.add('active');
-
-        applyFilters();
-    }
-
-    function cleanAddress(rawAddr) {
-        if (!rawAddr) return "";
-        return rawAddr
-            .replace(/\(.*?\)/g, '')
-            .replace(/외\s*\d+.*$/g, '')
-            .replace(/일원.*$/g, '')
-            .replace(/[\d\-]+BL.*$/gi, '')
-            .replace(/BL.*$/gi, '')
-            .replace(/로트.*$/gi, '')
-            .trim();
-    }
-
-    function parseCsvLine(line) {
-        var result = [];
-        var cur = "";
-        var inQuotes = false;
-        for (var i = 0; i < line.length; i++) {
-            var ch = line[i];
-            if (ch === '"') {
-                inQuotes = !inQuotes;
-            } else if (ch === ',' && !inQuotes) {
-                result.push(cur.trim());
-                cur = "";
-            } else {
-                cur += ch;
-            }
-        }
-        result.push(cur.trim());
-        return result;
-    }
-
-    // [구글 시트 연동: A~I 기존열 + J~R 확장열]
-    var sheetManagers = [];
-    var SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9i0XauGTtL6JWFSjKx0trX6LAnw-_hvb6LV3YEe1RKWnZLSxyi2szhaYaHyrSqDj5rwdIZLuO53Vt/pub?gid=0&single=true&output=csv";
-
-    fetch(SHEET_CSV_URL)
-        .then(function(res) { return res.text(); })
-        .then(function(csvText) {
-            var lines = csvText.split(/\r?\n/);
-            for (var i = 1; i < lines.length; i++) {
-                if (!lines[i].trim()) continue;
-                var cols = parseCsvLine(lines[i]);
-                if (cols.length >= 6) {
-                    var keyword = (cols[0] || "").trim();
-                    var role = (cols[1] || "").trim();
-                    var managerName = (cols[2] || "").trim();
-                    var phone = (cols[3] || "").trim();
-                    var kakao = (cols[4] || "").trim();
-                    var status = (cols[5] || "").trim().toUpperCase();
-                    var endDate = (cols[6] || "").trim();
-                    var customLat = parseFloat((cols[7] || "").trim());
-                    var customLng = parseFloat((cols[8] || "").trim());
-
-                    var staffPhoto = (cols[9] || "").trim();
-                    var salesCondition = (cols[10] || "").trim();
-                    var siteImagesRaw = (cols[11] || "").trim();
-                    var siteYoutube = (cols[12] || "").trim();
-                    var realtyIntro = (cols[13] || "").trim();
-                    var listings = [
-                        (cols[14] || "").trim(),
-                        (cols[15] || "").trim(),
-                        (cols[16] || "").trim(),
-                        (cols[17] || "").trim()
-                    ].filter(function(item) { return !!item; });
-
-                    if (keyword && status === "ON") {
-                        sheetManagers.push({
-                            keyword: keyword,
-                            role: role,
-                            managerName: managerName,
-                            phone: phone,
-                            kakao: kakao,
-                            endDate: endDate,
-                            customLat: !isNaN(customLat) ? customLat : null,
-                            customLng: !isNaN(customLng) ? customLng : null,
-                            staffPhoto: staffPhoto,
-                            salesCondition: salesCondition,
-                            siteImages: siteImagesRaw ? siteImagesRaw.split("|").map(function(s) { return s.trim(); }).filter(Boolean) : [],
-                            siteYoutube: siteYoutube,
-                            realtyIntro: realtyIntro,
-                            listings: listings
-                        });
-                    }
-                }
-            }
-        })
-        .catch(function(err) { console.log("담당자 시트 로드 대기:", err); });
-
-    function getAssignedManager(aptName) {
-        var today = new Date().toISOString().slice(0, 10);
-        for (var i = 0; i < sheetManagers.length; i++) {
-            var m = sheetManagers[i];
-            if (aptName.indexOf(m.keyword) !== -1) {
-                if (m.endDate && m.endDate < today) continue;
-                return m;
-            }
-        }
-        return null;
-    }
-
-    function getYoutubeEmbedUrl(url) {
-        if (!url) return "";
-        var match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);
-        return match ? ("https://www.youtube.com/embed/" + match[1]) : "";
-    }
-
-    // [서브 뷰 1: 실시간 청약 / 선착순 미분양 현장 담당 매니저 상세 카드]
-    function openStaffDetailView() {
-        if (!activeModalApt) return;
-        var modalBody = document.getElementById('modalBody');
-        var name = activeModalApt.HOUSE_NM || "현장 안내";
-        var assigned = getAssignedManager(name) || {};
-        var targetKakao = assigned.kakao || "https://open.kakao.com/o/sg4ZB3Wi";
-        var targetPhone = assigned.phone || "010-3974-7087";
-        var staffTitle = (assigned.role ? assigned.role + " " : "") + (assigned.managerName || "분양 전담 매니저");
-
-        var kakaoBtnLabel = (activeModalStatus === 'apt')
-            ? "💬 카톡 1:1 청약상담"
-            : "💬 카톡 1:1 계약조건·잔여세대 상담";
-
-        var avatarHtml = assigned.staffPhoto
-            ? `<img src="${assigned.staffPhoto}" alt="${staffTitle}" class="profile-avatar">`
-            : `<div class="profile-placeholder">👤</div>`;
-
-        var conditionText = assigned.salesCondition
-            ? assigned.salesCondition
-            : "청약 자격 점검, 잔여 동·호수 현황 및 계약금·중도금 혜택은 전담 매니저에게 1:1 문의 시 실시간 로열층 기준으로 안내해 드립니다.";
-
-        var mediaHtml = "";
-        var embedUrl = getYoutubeEmbedUrl(assigned.siteYoutube);
-        if (embedUrl) {
-            mediaHtml += `
-                <div class="video-wrapper">
-                    <iframe src="${embedUrl}" allowfullscreen></iframe>
-                </div>
-            `;
-        }
-        if (assigned.siteImages && assigned.siteImages.length > 0) {
-            mediaHtml += `<div class="media-gallery">` +
-                assigned.siteImages.map(function(imgUrl) {
-                    return `<img src="${imgUrl}" alt="${name} 현장 안내">`;
-                }).join("") +
-                `</div>`;
-        }
-
-        modalBody.innerHTML = `
-            <button class="sub-back-btn" onclick="renderMainModal()">← 단지 기본정보로 돌아가기</button>
-            <div class="modal-title">${name} 전담 안내</div>
-            <div class="profile-card">
-                ${avatarHtml}
-                <div>
-                    <div style="font-size:14px; font-weight:bold; color:#0f172a; margin-bottom:4px;">${staffTitle}</div>
-                    <div style="font-size:11px; color:#475569;">현장 모델하우스 · 청약 및 동호수 지정 공식 안내</div>
-                    <div style="font-size:11px; color:#2563eb; font-weight:bold; margin-top:4px;">📞 ${targetPhone}</div>
-                </div>
-            </div>
-
-            <div class="condition-box">
-                <div style="font-weight:bold; margin-bottom:4px;">📌 현장 핵심 분양조건 안내</div>
-                <div>${conditionText}</div>
-            </div>
-
-            ${mediaHtml}
-
-            <div class="consult-group">
-                <a href="${targetKakao}" target="_blank" class="btn-kakao">${kakaoBtnLabel}</a>
-                <a href="tel:${targetPhone}" class="btn-call">📞 현장 직통 전화상담</a>
-            </div>
-        `;
-    }
-
-    // [서브 뷰 2: 입주완료 단지 전담 부동산 소개 및 주력 매물(사진 포함) 상세 카드]
-    function openRealtyDetailView() {
-        if (!activeModalApt) return;
-        var modalBody = document.getElementById('modalBody');
-        var name = activeModalApt.HOUSE_NM || "단지 안내";
-        var assigned = getAssignedManager(name) || {};
-        var targetKakao = assigned.kakao || "https://open.kakao.com/o/sg4ZB3Wi";
-        var targetPhone = assigned.phone || "010-3974-7087";
-        var officeTitle = (assigned.managerName)
-            ? `전담 중개: ${assigned.role ? assigned.role + " " : ""}${assigned.managerName}`
-            : "전담 중개사무소 안내";
-
-        var introText = assigned.realtyIntro
-            ? assigned.realtyIntro
-            : "공인중개사 · 권리분석사가 직접 검증한 분양권 전매, 입주권 및 전세·월세 매물을 안전하게 책임 중개합니다.";
-
-        var listingsHtml = "";
-        if (assigned.listings && assigned.listings.length > 0) {
-            listingsHtml = `<div class="listing-grid">` + assigned.listings.map(function(rawItem) {
-                var parts = rawItem.split("::");
-                var desc = (parts[0] || "").trim();
-                var photo = (parts[1] || "").trim();
-                var imgTag = photo
-                    ? `<img src="${photo}" alt="매물 사진" class="listing-thumb">`
-                    : `<div class="listing-thumb" style="display:flex;align-items:center;justify-content:center;font-size:20px;">🏢</div>`;
-                return `
-                    <div class="listing-item-card">
-                        ${imgTag}
-                        <div class="listing-text">${desc}</div>
-                    </div>
-                `;
-            }).join("") + `</div>`;
-        } else {
-            listingsHtml = `
-                <div class="listing-grid">
-                    <div class="listing-item-card">
-                        <div class="listing-thumb" style="display:flex;align-items:center;justify-content:center;font-size:20px;">🔑</div>
-                        <div class="listing-text"><strong>${name} 주력 분양권 · 입주 매물</strong><br>로열동·로열층 분양권 매도/매수 및 전세·월세 실시간 접수 중</div>
-                    </div>
-                </div>
-            `;
-        }
-
-        modalBody.innerHTML = `
-            <button class="sub-back-btn" onclick="renderMainModal()">← 단지 기본정보로 돌아가기</button>
-            <div class="modal-title">🏢 전담 부동산 분양권 · 전세/월세</div>
-            <div class="expert-box">
-                <div class="expert-box-title">${officeTitle}</div>
-                <div style="font-size:12px; color:#334155; line-height:1.5;">${introText}</div>
-            </div>
-
-            <div style="font-size:12px; font-weight:bold; color:#0f172a; margin-bottom:8px;">📋 추천 주력 매물 현황</div>
-            ${listingsHtml}
-
-            <div class="consult-group">
-                <a href="${targetKakao}" target="_blank" class="btn-kakao">💬 카톡 1:1 잔여세대·입주상담</a>
-                <a href="tel:${targetPhone}" class="btn-call">📞 전담 부동산 직통 상담</a>
-            </div>
-        `;
-    }
-
-    function renderMainModal() {
-        var apt = activeModalApt;
-        var statusType = activeModalStatus;
-        var modalBody = document.getElementById('modalBody');
-
-        var name = apt.HOUSE_NM || "단지명 미제공";
-        var addr = apt.HSSPLY_ADRES || "주소 정보 없음";
-        var scale = apt.TOT_SUPLY_HSHLDCO ? (apt.TOT_SUPLY_HSHLDCO + " 세대") : "-";
-        var rceptStart = apt.RCEPT_BGNDE || "-";
-        var rceptEnd = apt.RCEPT_ENDDE || "-";
-        var winDate = apt.PRZWNER_PRESN_DATE || "-";
-        var contractStart = apt.CNTRCT_CNCLS_BGNDE || "-";
-        var contractEnd = apt.CNTRCT_CNCLS_ENDDE || "-";
-        var construct = apt.BSNS_MBY_NM || apt.CNSTRCT_ENTRPS_NM || "-";
-        var url = apt.PBLANC_URL || "";
-
-        var statusBadge = statusType === 'apt'
-            ? `<span class="badge badge-apt">실시간 청약 일정 진행중</span>`
-            : statusType === 'old'
-            ? `<span class="badge badge-old">입주완료 · 잔여세대 및 분양권/전월세 상담</span>`
-            : `<span class="badge badge-fcfs">정당계약 종료 (선착순 동호수 지정·상담)</span>`;
-
-        var checkPoints = statusType === 'apt'
-            ? `<li><strong>청약 자격 사전 점검:</strong> 모집공고일 기준 해당 지역 거주기간, 예치금 충족 여부 및 세대주 요건 확인</li>
-               <li><strong>가점제·추첨제 비율:</strong> 전용면적별 가점제/추첨제 당첨 비율 및 생애최초·신혼부부 특별공급 중복 청약 여부 체크</li>
-               <li><strong>계약금 및 대출 한도:</strong> 당첨자 발표 후 정당계약일까지 초기 계약금(10%) 마련 및 중도금 대출 가능 여부 확인</li>`
-            : statusType === 'old'
-            ? `<li><strong>입주 후 분양권·전월세 시세:</strong> 단지 내 실거래가 추이, 동·층별 로열동 매물 현황 및 전세가율 비교 점검</li>
-               <li><strong>등기·권리관계 분석:</strong> 소유권이전등기 완료 여부, 근저당권 설정 내역 및 전세보증보험 가입 요건 확인</li>
-               <li><strong>잔여 회사보유분 체크:</strong> 일부 단지의 경우 준공 후 미분양·회사보유분 특별조건 분양 물량 유무 별도 확인 가능</li>`
-            : `<li><strong>청약통장 불필요:</strong> 만 19세 이상이면 거주지·주택수 무관하게 잔여 동·호수 선착순 지정 계약 가능</li>
-               <li><strong>계약 조건 및 혜택 확인:</strong> 계약금 정액제, 중도금 무이자·후불제 조건 및 발코니 확장비 포함 여부 필수 체크</li>
-               <li><strong>권리·전매 체크:</strong> 전매제한 기간, 실거주 의무 유무 및 입주 시점 자금 조달 계획 사전 점검 권장</li>`;
-
-        var html = `
-            <div style="margin-bottom: 6px;">${statusBadge}</div>
-            <div class="modal-title">${name}</div>
-            <table class="modal-table">
-                <tr><th>공급위치</th><td>${addr}</td></tr>
-                <tr><th>공급규모</th><td>${scale}</td></tr>
-                <tr><th>청약접수</th><td>${rceptStart} ~ ${rceptEnd}</td></tr>
-                <tr><th>당첨자발표</th><td>${winDate}</td></tr>
-                <tr><th>정당계약일</th><td><strong>${contractStart} ~ ${contractEnd}</strong></td></tr>
-                <tr><th>시공/시행사</th><td>${construct}</td></tr>
-            </table>
-
-            <div class="expert-box">
-                <div class="expert-box-title">📋 공인중개사·권리분석사 핵심 체크포인트</div>
-                <ul class="expert-box-list">
-                    ${checkPoints}
-                </ul>
-            </div>
-        `;
-
-        var assigned = getAssignedManager(name);
-        var targetKakao = (assigned && assigned.kakao) ? assigned.kakao : "https://open.kakao.com/o/sg4ZB3Wi";
-        var targetPhone = (assigned && assigned.phone) ? assigned.phone : "010-3974-7087";
-
-        // [단계별 배지 & 버튼 분기: 입주완료(old)는 전담 부동산 1곳 전용 / 청약·미분양은 현장 매니저 1인 전용]
-        if (statusType === 'old') {
-            var realtyBadgeTitle = (assigned && assigned.managerName)
-                ? `🏢 전담 부동산: ${assigned.role ? assigned.role + " " : ""}${assigned.managerName}`
-                : `🏢 전담 부동산 분양권 · 전세/월세 상담`;
-
-            html += `
-            <button type="button" class="btn-realty-full" onclick="openRealtyDetailView()">
-                <span>${realtyBadgeTitle}</span>
-                <span style="font-size:11px; color:#93c5fd;">주력매물 보기 〉</span>
-            </button>
-            <div class="consult-group">
-                <a href="${targetKakao}" target="_blank" class="btn-kakao">💬 카톡 1:1 잔여세대·입주상담</a>
-                <a href="tel:${targetPhone}" class="btn-call">📞 전담 부동산 직통 상담</a>
-            </div>
-            `;
-        } else {
-            var staffLabel = (assigned && assigned.managerName)
-                ? `👤 전담 안내: ${assigned.role ? assigned.role + " " : ""}${assigned.managerName}`
-                : `👤 현장 담당 매니저 · 분양조건 안내`;
-
-            var kakaoLabel = (statusType === 'apt')
-                ? "💬 카톡 1:1 청약상담"
-                : "💬 카톡 1:1 계약조건·잔여세대 상담";
-
-            html += `
-            <button type="button" class="staff-badge-btn" onclick="openStaffDetailView()">
-                <span>${staffLabel}</span>
-                <span style="font-size:11px; color:#2563eb;">프로필·영상 보기 〉</span>
-            </button>
-            <div class="consult-group">
-                <a href="${targetKakao}" target="_blank" class="btn-kakao">${kakaoLabel}</a>
-                <a href="tel:${targetPhone}" class="btn-call">📞 현장 직통 전화상담</a>
-            </div>
-            `;
-        }
-
-        if (url) {
-            html += `<a href="${url}" target="_blank" class="modal-btn-link">청약홈 원본 공고문 확인하기 ↗</a>`;
-        }
-
-        modalBody.innerHTML = html;
-    }
-
-    function openModal(apt, statusType) {
-        activeModalApt = apt;
-        activeModalStatus = statusType;
-        renderMainModal();
-        document.getElementById('modalOverlay').style.display = 'flex';
-    }
-
-    function closeModal() {
-        document.getElementById('modalOverlay').style.display = 'none';
-    }
-
-    function detectTitleRegionHint(name) {
-        var norm = normalizeName(name);
-        for (var i = 0; i < titleRegionHints.length; i++) {
-            if (norm.indexOf(titleRegionHints[i].keyword) !== -1) {
-                return titleRegionHints[i];
-            }
-        }
-        return null;
-    }
-
-    function verifyAndFixRegionCoords(name, rawAddr, coords, callback) {
-        var hint = detectTitleRegionHint(name);
-        if (!hint) {
-            callback(coords);
-            return;
-        }
-
-        geocoder.coord2RegionCode(coords.getLng(), coords.getLat(), function(result, status) {
-            if (status === kakao.maps.services.Status.OK && result.length > 0) {
-                var regionFull = result[0].address_name || "";
-                if (regionFull.indexOf(hint.expectedRegion) === -1) {
-                    places.keywordSearch(hint.fallbackQuery + " " + name, function(pData, pStatus) {
-                        var validPlace = (pStatus === kakao.maps.services.Status.OK)
-                            ? pData.find(function(item) {
-                                return (item.address_name || "").indexOf(hint.expectedRegion) !== -1 &&
-                                       (item.place_name || "").indexOf("모델하우스") === -1 &&
-                                       (item.place_name || "").indexOf("견본주택") === -1;
-                            })
-                            : null;
-
-                        if (validPlace) {
-                            callback(new kakao.maps.LatLng(validPlace.y, validPlace.x));
-                        } else {
-                            geocoder.addressSearch(hint.fallbackQuery, function(gRes, gStatus) {
-                                if (gStatus === kakao.maps.services.Status.OK) {
-                                    callback(new kakao.maps.LatLng(gRes[0].y, gRes[0].x));
-                                } else {
-                                    callback(new kakao.maps.LatLng(hint.fallbackLat, hint.fallbackLng));
-                                }
-                            });
-                        }
-                    });
-                    return;
-                }
-            }
-            callback(coords);
-        });
-    }
-
-    function findAccurateCoords(name, rawAddr, callback) {
-        var normName = normalizeName(name);
-        var combinedText = normName + "_" + normalizeName(rawAddr);
-        var hint = detectTitleRegionHint(name);
-
-        var assigned = getAssignedManager(name);
-        if (assigned && assigned.customLat && assigned.customLng) {
-            callback(new kakao.maps.LatLng(assigned.customLat, assigned.customLng));
-            return;
-        }
-
-        if (normName.indexOf("트라비스") !== -1 || normName.indexOf("트래비스") !== -1) {
-            callback(new kakao.maps.LatLng(35.1268, 128.9710));
-            return;
-        }
-
-        if (rawAddr.indexOf("강서구") !== -1 || normName.indexOf("에코델타") !== -1 || normName.indexOf("부산명지") !== -1 || normName.indexOf("명지국제") !== -1 || normName.indexOf("강서자이") !== -1) {
-            for (var i = 0; i < gangseoExactCoords.length; i++) {
-                var entry = gangseoExactCoords[i];
-                for (var j = 0; j < entry.keywords.length; j++) {
-                    if (combinedText.indexOf(entry.keywords[j]) !== -1) {
-                        callback(new kakao.maps.LatLng(entry.lat, entry.lng));
-                        return;
-                    }
+    _0x1c9a._0x8b2c=function(f,el){_0x96=f;document.querySelectorAll('.btn-filter').forEach(function(b){b.classList.remove('active');});el.classList.add('active');_0x3c();};
+    function _0x3d(a){return a?a.replace(/\(.*?\)/g,'').replace(/외\s*\d+.*$/g,'').replace(/일원.*$/g,'').replace(/[\d\-]+BL.*$/gi,'').replace(/BL.*$/gi,'').replace(/로트.*$/gi,'').trim():"";}
+    function _0x3e(l){var r=[],c="",q=false;for(var i=0;i<l.length;i++){var ch=l[i];if(ch==='"')q=!q;else if(ch===','&&!q){r.push(c.trim());c="";}else c+=ch;}r.push(c.trim());return r;}
+
+    fetch(_0x3b8e[0]).then(function(r){return r.text();}).then(function(tx){
+        var ln=tx.split(/\r?\n/);
+        for(var i=1;i<ln.length;i++){
+            if(!ln[i].trim())continue;var c=_0x3e(ln[i]);
+            if(c.length>=6){
+                var kw=(c[0]||"").trim(),st=(c[5]||"").trim().toUpperCase(),la=parseFloat((c[7]||"").trim()),lo=parseFloat((c[8]||"").trim()),im=(c[11]||"").trim();
+                if(kw&&st==="ON"){
+                    _0x9b.push({keyword:kw,role:(c[1]||"").trim(),managerName:(c[2]||"").trim(),phone:(c[3]||"").trim(),kakao:(c[4]||"").trim(),endDate:(c[6]||"").trim(),customLat:!isNaN(la)?la:null,customLng:!isNaN(lo)?lo:null,staffPhoto:(c[9]||"").trim(),salesCondition:(c[10]||"").trim(),siteImages:im?im.split("|").map(function(s){return s.trim();}).filter(Boolean):[],siteYoutube:(c[12]||"").trim(),realtyIntro:(c[13]||"").trim(),listings:[(c[14]||"").trim(),(c[15]||"").trim(),(c[16]||"").trim(),(c[17]||"").trim()].filter(Boolean)});
                 }
             }
         }
+    }).catch(function(){});
 
-        var searchAddr = cleanAddress(rawAddr);
-        geocoder.addressSearch(searchAddr, function(result, addrStatus) {
-            if (addrStatus === kakao.maps.services.Status.OK) {
-                var rawCoords = new kakao.maps.LatLng(result[0].y, result[0].x);
-                verifyAndFixRegionCoords(name, rawAddr, rawCoords, callback);
-            } else {
-                var regionPrefix = hint ? hint.fallbackQuery : rawAddr.split(" ").slice(0, 2).join(" ");
-                var keyword = regionPrefix + " " + name;
+    function _0x3f(nm){var td=new Date().toISOString().slice(0,10);for(var i=0;i<_0x9b.length;i++){var m=_0x9b[i];if(nm.indexOf(m.keyword)!==-1){if(m.endDate&&m.endDate<td)continue;return m;}}return null;}
+    function _0x40(u){if(!u)return"";var m=u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);return m?("https://www.youtube.com/embed/"+m[1]):"";}
 
-                places.keywordSearch(keyword, function(data, status) {
-                    var filtered = (status === kakao.maps.services.Status.OK)
-                        ? data.filter(function(item) {
-                            var pName = item.place_name || "";
-                            return pName.indexOf("모델하우스") === -1 &&
-                                   pName.indexOf("견본주택") === -1 &&
-                                   pName.indexOf("홍보관") === -1 &&
-                                   pName.indexOf("분양사무소") === -1;
-                        })
-                        : [];
+    _0x1c9a._0x7c1a=function(){
+        if(!_0x99)return;var mb=document.getElementById('modalBody'),nm=_0x99.HOUSE_NM||"현장 안내",as=_0x3f(nm)||{},kk=as.kakao||_0x3b8e[3],ph=as.phone||_0x3b8e[4],st=(as.role?as.role+" ":"")+(as.managerName||"분양 전담 매니저");
+        var kb=_0x9a==='apt'?"💬 카톡 1:1 청약상담":"💬 카톡 1:1 계약조건·잔여세대 상담";
+        var av=as.staffPhoto?'<img src="'+as.staffPhoto+'" alt="'+st+'" class="profile-avatar">':'<div class="profile-placeholder">👤</div>';
+        var cd=as.salesCondition||"청약 자격 점검, 잔여 동·호수 현황 및 계약금·중도금 혜택은 전담 매니저에게 1:1 문의 시 실시간 로열층 기준으로 안내해 드립니다.";
+        var md="",em=_0x40(as.siteYoutube);
+        if(em)md+='<div class="video-wrapper"><iframe src="'+em+'" allowfullscreen></iframe></div>';
+        if(as.siteImages&&as.siteImages.length>0)md+='<div class="media-gallery">'+as.siteImages.map(function(u){return'<img src="'+u+'" alt="'+nm+'">';}).join("")+'</div>';
+        mb.innerHTML='<button class="sub-back-btn" onclick="_0x6f4b()">← 단지 기본정보로 돌아가기</button><div class="modal-title">'+nm+' 전담 안내</div><div class="profile-card">'+av+'<div><div style="font-size:14px;font-weight:bold;color:#0f172a;margin-bottom:4px;">'+st+'</div><div style="font-size:11px;color:#475569;">현장 모델하우스 · 청약 및 동호수 지정 공식 안내</div><div style="font-size:11px;color:#2563eb;font-weight:bold;margin-top:4px;">📞 '+ph+'</div></div></div><div class="condition-box"><div style="font-weight:bold;margin-bottom:4px;">📌 현장 핵심 분양조건 안내</div><div>'+cd+'</div></div>'+md+'<div class="consult-group"><a href="'+kk+'" target="_blank" class="btn-kakao">'+kb+'</a><a href="tel:'+ph+'" class="btn-call">📞 현장 직통 전화상담</a></div>';
+    };
 
-                    if (filtered.length > 0) {
-                        var kwCoords = new kakao.maps.LatLng(filtered[0].y, filtered[0].x);
-                        verifyAndFixRegionCoords(name, rawAddr, kwCoords, callback);
-                    } else if (hint) {
-                        callback(new kakao.maps.LatLng(hint.fallbackLat, hint.fallbackLng));
-                    } else {
-                        var shortAddr = searchAddr.split(" ").slice(0, 3).join(" ");
-                        if (shortAddr) {
-                            geocoder.addressSearch(shortAddr, function(retryRes, retryStatus) {
-                                if (retryStatus === kakao.maps.services.Status.OK) {
-                                    callback(new kakao.maps.LatLng(retryRes[0].y, retryRes[0].x));
-                                } else {
-                                    callback(null);
-                                }
-                            });
-                        } else {
-                            callback(null);
-                        }
-                    }
+    _0x1c9a._0x5e8d=function(){
+        if(!_0x99)return;var mb=document.getElementById('modalBody'),nm=_0x99.HOUSE_NM||"단지 안내",as=_0x3f(nm)||{},kk=as.kakao||_0x3b8e[3],ph=as.phone||_0x3b8e[4],ot=as.managerName?("전담 중개: "+(as.role?as.role+" ":"")+as.managerName):"전담 중개사무소 안내";
+        var it=as.realtyIntro||"공인중개사 · 권리분석사가 직접 검증한 분양권 전매, 입주권 및 전세·월세 매물을 안전하게 책임 중개합니다.",lh="";
+        if(as.listings&&as.listings.length>0){
+            lh='<div class="listing-grid">'+as.listings.map(function(r){var p=r.split("::"),d=(p[0]||"").trim(),f=(p[1]||"").trim(),ig=f?'<img src="'+f+'" alt="매물 사진" class="listing-thumb">':'<div class="listing-thumb" style="display:flex;align-items:center;justify-content:center;font-size:20px;">🏢</div>';return'<div class="listing-item-card">'+ig+'<div class="listing-text">'+d+'</div></div>';}).join("")+'</div>';
+        }else{
+            lh='<div class="listing-grid"><div class="listing-item-card"><div class="listing-thumb" style="display:flex;align-items:center;justify-content:center;font-size:20px;">🔑</div><div class="listing-text"><strong>'+nm+' 주력 분양권 · 입주 매물</strong><br>로열동·로열층 분양권 매도/매수 및 전세·월세 실시간 접수 중</div></div></div>';
+        }
+        mb.innerHTML='<button class="sub-back-btn" onclick="_0x6f4b()">← 단지 기본정보로 돌아가기</button><div class="modal-title">🏢 전담 부동산 분양권 · 전세/월세</div><div class="expert-box"><div class="expert-box-title">'+ot+'</div><div style="font-size:12px;color:#334155;line-height:1.5;">'+it+'</div></div><div style="font-size:12px;font-weight:bold;color:#0f172a;margin-bottom:8px;">📋 추천 주력 매물 현황</div>'+lh+'<div class="consult-group"><a href="'+kk+'" target="_blank" class="btn-kakao">💬 카톡 1:1 잔여세대·입주상담</a><a href="tel:'+ph+'" class="btn-call">📞 전담 부동산 직통 상담</a></div>';
+    };
+
+    _0x1c9a._0x6f4b=function(){
+        var p=_0x99,st=_0x9a,mb=document.getElementById('modalBody'),nm=p.HOUSE_NM||"단지명 미제공",ad=p.HSSPLY_ADRES||"주소 정보 없음",sc=p.TOT_SUPLY_HSHLDCO?(p.TOT_SUPLY_HSHLDCO+" 세대"):"-",rs=p.RCEPT_BGNDE||"-",re=p.RCEPT_ENDDE||"-",wd=p.PRZWNER_PRESN_DATE||"-",cs=p.CNTRCT_CNCLS_BGNDE||"-",ce=p.CNTRCT_CNCLS_ENDDE||"-",co=p.BSNS_MBY_NM||p.CNSTRCT_ENTRPS_NM||"-",ur=p.PBLANC_URL||"";
+        var sb=st==='apt'?'<span class="badge badge-apt">실시간 청약 일정 진행중</span>':st==='old'?'<span class="badge badge-old">입주완료 · 잔여세대 및 분양권/전월세 상담</span>':'<span class="badge badge-fcfs">정당계약 종료 (선착순 동호수 지정·상담)</span>';
+        var cp=st==='apt'?'<li><strong>청약 자격 사전 점검:</strong> 모집공고일 기준 해당 지역 거주기간, 예치금 충족 여부 및 세대주 요건 확인</li><li><strong>가점제·추첨제 비율:</strong> 전용면적별 가점제/추첨제 당첨 비율 및 생애최초·신혼부부 특별공급 중복 청약 여부 체크</li><li><strong>계약금 및 대출 한도:</strong> 당첨자 발표 후 정당계약일까지 초기 계약금(10%) 마련 및 중도금 대출 가능 여부 확인</li>':st==='old'?'<li><strong>입주 후 분양권·전월세 시세:</strong> 단지 내 실거래가 추이, 동·층별 로열동 매물 현황 및 전세가율 비교 점검</li><li><strong>등기·권리관계 분석:</strong> 소유권이전등기 완료 여부, 근저당권 설정 내역 및 전세보증보험 가입 요건 확인</li><li><strong>잔여 회사보유분 체크:</strong> 일부 단지의 경우 준공 후 미분양·회사보유분 특별조건 분양 물량 유무 별도 확인 가능</li>':'<li><strong>청약통장 불필요:</strong> 만 19세 이상이면 거주지·주택수 무관하게 잔여 동·호수 선착순 지정 계약 가능</li><li><strong>계약 조건 및 혜택 확인:</strong> 계약금 정액제, 중도금 무이자·후불제 조건 및 발코니 확장비 포함 여부 필수 체크</li><li><strong>권리·전매 체크:</strong> 전매제한 기간, 실거주 의무 유무 및 입주 시점 자금 조달 계획 사전 점검 권장</li>';
+        var ht='<div style="margin-bottom:6px;">'+sb+'</div><div class="modal-title">'+nm+'</div><table class="modal-table"><tr><th>공급위치</th><td>'+ad+'</td></tr><tr><th>공급규모</th><td>'+sc+'</td></tr><tr><th>청약접수</th><td>'+rs+' ~ '+re+'</td></tr><tr><th>당첨자발표</th><td>'+wd+'</td></tr><tr><th>정당계약일</th><td><strong>'+cs+' ~ '+ce+'</strong></td></tr><tr><th>시공/시행사</th><td>'+co+'</td></tr></table><div class="expert-box"><div class="expert-box-title">📋 공인중개사·권리분석사 핵심 체크포인트</div><ul class="expert-box-list">'+cp+'</ul></div>';
+        var as=_0x3f(nm),kk=(as&&as.kakao)?as.kakao:_0x3b8e[3],ph=(as&&as.phone)?as.phone:_0x3b8e[4];
+        if(st==='old'){
+            var rt=(as&&as.managerName)?('🏢 전담 부동산: '+(as.role?as.role+" ":"")+as.managerName):'🏢 전담 부동산 분양권 · 전세/월세 상담';
+            ht+='<button type="button" class="btn-realty-full" onclick="_0x5e8d()"><span>'+rt+'</span><span style="font-size:11px;color:#93c5fd;">주력매물 보기 〉</span></button><div class="consult-group"><a href="'+kk+'" target="_blank" class="btn-kakao">💬 카톡 1:1 잔여세대·입주상담</a><a href="tel:'+ph+'" class="btn-call">📞 전담 부동산 직통 상담</a></div>';
+        }else{
+            var sl=(as&&as.managerName)?('👤 전담 안내: '+(as.role?as.role+" ":"")+as.managerName):'👤 현장 담당 매니저 · 분양조건 안내';
+            var kl=st==='apt'?'💬 카톡 1:1 청약상담':'💬 카톡 1:1 계약조건·잔여세대 상담';
+            ht+='<button type="button" class="staff-badge-btn" onclick="_0x7c1a()"><span>'+sl+'</span><span style="font-size:11px;color:#2563eb;">프로필·영상 보기 〉</span></button><div class="consult-group"><a href="'+kk+'" target="_blank" class="btn-kakao">'+kl+'</a><a href="tel:'+ph+'" class="btn-call">📞 현장 직통 전화상담</a></div>';
+        }
+        if(ur)ht+='<a href="'+ur+'" target="_blank" class="modal-btn-link">청약홈 원본 공고문 확인하기 ↗</a>';
+        mb.innerHTML=ht;
+    };
+
+    function _0x41(p,s){_0x99=p;_0x9a=s;_0x1c9a._0x6f4b();document.getElementById('modalOverlay').style.display='flex';}
+    _0x1c9a._0x9d3e=function(){document.getElementById('modalOverlay').style.display='none';};
+    function _0x42(nm){var n=_0x31(nm);for(var i=0;i<_0x2c.length;i++)if(n.indexOf(_0x2c[i].k)!==-1)return _0x2c[i];return null;}
+    function _0x43(nm,ad,co,cb){
+        var h=_0x42(nm);if(!h){cb(co);return;}
+        _0x92.coord2RegionCode(co.getLng(),co.getLat(),function(rs,st){
+            if(st===kakao.maps.services.Status.OK&&rs.length>0&&(rs[0].address_name||"").indexOf(h.r)===-1){
+                _0x93.keywordSearch(h.q+" "+nm,function(pd,ps){
+                    var vp=(ps===kakao.maps.services.Status.OK)?pd.find(function(i){return(i.address_name||"").indexOf(h.r)!==-1&&(i.place_name||"").indexOf("모델하우스")===-1&&(i.place_name||"").indexOf("견본주택")===-1;}):null;
+                    if(vp)cb(new kakao.maps.LatLng(vp.y,vp.x));
+                    else _0x92.addressSearch(h.q,function(gr,gs){cb(gs===kakao.maps.services.Status.OK?new kakao.maps.LatLng(gr[0].y,gr[0].x):new kakao.maps.LatLng(h.x,h.y));});
+                });return;
+            }cb(co);
+        });
+    }
+    function _0x44(nm,ad,cb){
+        var nn=_0x31(nm),ct=nn+"_"+_0x31(ad),h=_0x42(nm),as=_0x3f(nm);
+        if(as&&as.customLat&&as.customLng){cb(new kakao.maps.LatLng(as.customLat,as.customLng));return;}
+        if(nn.indexOf("트라비스")!==-1||nn.indexOf("트래비스")!==-1){cb(new kakao.maps.LatLng(35.1268,128.9710));return;}
+        if(ad.indexOf("강서구")!==-1||nn.indexOf("에코델타")!==-1||nn.indexOf("부산명지")!==-1||nn.indexOf("명지국제")!==-1||nn.indexOf("강서자이")!==-1){
+            for(var i=0;i<_0x2b.length;i++)for(var j=0;j<_0x2b[i].k.length;j++)if(ct.indexOf(_0x2b[i].k[j])!==-1){cb(new kakao.maps.LatLng(_0x2b[i].x,_0x2b[i].y));return;}
+        }
+        var sa=_0x3d(ad);
+        _0x92.addressSearch(sa,function(rs,st){
+            if(st===kakao.maps.services.Status.OK)_0x43(nm,ad,new kakao.maps.LatLng(rs[0].y,rs[0].x),cb);
+            else{
+                var kw=(h?h.q:ad.split(" ").slice(0,2).join(" "))+" "+nm;
+                _0x93.keywordSearch(kw,function(dt,ks){
+                    var fl=(ks===kakao.maps.services.Status.OK)?dt.filter(function(i){var p=i.place_name||"";return p.indexOf("모델하우스")===-1&&p.indexOf("견본주택")===-1&&p.indexOf("홍보관")===-1&&p.indexOf("분양사무소")===-1;}):[];
+                    if(fl.length>0)_0x43(nm,ad,new kakao.maps.LatLng(fl[0].y,fl[0].x),cb);
+                    else if(h)cb(new kakao.maps.LatLng(h.x,h.y));
+                    else{var sh=sa.split(" ").slice(0,3).join(" ");if(sh)_0x92.addressSearch(sh,function(rr,rs2){cb(rs2===kakao.maps.services.Status.OK?new kakao.maps.LatLng(rr[0].y,rr[0].x):null);});else cb(null);}
                 });
             }
         });
     }
 
-    var serviceKey = "935de5c23598a914dd97149a0b92614db7f4de28d991d658d58dfaca03bad3a7";
-    var baseUrl = "https://api.odcloud.kr/api/ApplyhomeInfoDetailSvc/v1/getAPTLttotPblancDetail?perPage=1000&serviceKey=" + encodeURIComponent(serviceKey);
-
-    Promise.all([
-        fetch(baseUrl + "&page=1").then(function(r) { return r.json(); }),
-        fetch(baseUrl + "&page=2").then(function(r) { return r.json(); }),
-        fetch(baseUrl + "&page=3").then(function(r) { return r.json(); })
-    ])
-    .then(function(results) {
-        var rawItems = [];
-        results.forEach(function(res) {
-            if (res && res.data) rawItems = rawItems.concat(res.data);
-        });
-
-        var seenPblanc = new Set();
-        var seenHouseNames = new Set();
-        var uniqueItems = rawItems.filter(function(apt) {
-            if (!shouldIncludeByRegionRule(apt)) return false;
-            var key = apt.PBLANC_NO || (apt.HOUSE_NM + "_" + apt.RCRIT_PBLANC_DE);
-            var normTitle = normalizeName(apt.HOUSE_NM);
-            if (seenPblanc.has(key) || seenHouseNames.has(normTitle)) return false;
-            seenPblanc.add(key);
-            seenHouseNames.add(normTitle);
-            return true;
-        });
-
-        var busanGyeongnamItems = uniqueItems.filter(function(apt) {
-            return matchRegion(apt.HSSPLY_ADRES, 'busan');
-        });
-
-        var seoulItems = uniqueItems
-            .filter(function(apt) {
-                return !matchRegion(apt.HSSPLY_ADRES, 'busan') && matchRegion(apt.HSSPLY_ADRES, 'seoul');
-            })
-            .sort(function(a, b) {
-                return (parseInt(b.TOT_SUPLY_HSHLDCO, 10) || 0) - (parseInt(a.TOT_SUPLY_HSHLDCO, 10) || 0);
-            })
-            .slice(0, 80);
-
-        var etcItems = uniqueItems
-            .filter(function(apt) {
-                return !matchRegion(apt.HSSPLY_ADRES, 'busan') && !matchRegion(apt.HSSPLY_ADRES, 'seoul');
-            })
-            .sort(function(a, b) {
-                return (parseInt(b.TOT_SUPLY_HSHLDCO, 10) || 0) - (parseInt(a.TOT_SUPLY_HSHLDCO, 10) || 0);
-            })
-            .slice(0, 40);
-
-        var items = busanGyeongnamItems.concat(seoulItems).concat(etcItems);
-
-        var existingNames = new Set(items.map(function(i) { return normalizeName(i.HOUSE_NM); }));
-        mustIncludeList.forEach(function(extra) {
-            if (!existingNames.has(normalizeName(extra.HOUSE_NM))) {
-                items.unshift(extra);
-            }
-        });
-
-        populateSeoDirectory(items);
-
-        var validItems = items.filter(function(apt) { return !!apt.HSSPLY_ADRES; });
-        totalTargetCount = validItems.length;
-        document.getElementById('status').innerText = "전국 맞춤형 " + totalTargetCount + "건 로드 중...";
-
-        validItems.forEach(function(apt, idx) {
-            var name = apt.HOUSE_NM || "아파트명 미제공";
-            var rawAddr = apt.HSSPLY_ADRES;
-            var contractEnd = apt.CNTRCT_CNCLS_ENDDE || "";
-
-            var statusType = getAptStatus(contractEnd);
-            var badgeText = statusType === 'apt' ? "실시간 청약"
-                          : statusType === 'fcfs' ? "선착순 계약 (잔여·마감 확인)"
-                          : statusType === 'old' ? "입주완료 · 분양권/전월세 상담"
-                          : "⚠️ 1년 경과·분양마감 확인필요";
-            var badgeClass = statusType === 'apt' ? "badge-apt"
-                           : statusType === 'fcfs' ? "badge-fcfs"
-                           : statusType === 'old' ? "badge-old"
-                           : "badge-check";
-            var descText = statusType === 'apt'
-                ? "접수: " + (apt.RCEPT_BGNDE || "-") + " ~ " + (apt.RCEPT_ENDDE || "-")
-                : "정당계약 마감 (" + contractEnd + ")";
-
-            setTimeout(function() {
-                findAccurateCoords(name, rawAddr, function(coords) {
-                    loadedCount++;
-                    if (coords) {
-                        renderClickableMarker(coords, badgeText, badgeClass, name, descText, apt, statusType, rawAddr);
+    var _0x45=_0x3b8e[2]+encodeURIComponent(_0x3b8e[1]);
+    Promise.all([fetch(_0x45+"&page=1").then(function(r){return r.json();}),fetch(_0x45+"&page=2").then(function(r){return r.json();}),fetch(_0x45+"&page=3").then(function(r){return r.json();})]).then(function(rs){
+        var rw=[];rs.forEach(function(r){if(r&&r.data)rw=rw.concat(r.data);});
+        var sp=new Set(),sn=new Set(),uq=rw.filter(function(p){if(!_0x39(p))return false;var k=p.PBLANC_NO||(p.HOUSE_NM+"_"+p.RCRIT_PBLANC_DE),nt=_0x31(p.HOUSE_NM);if(sp.has(k)||sn.has(nt))return false;sp.add(k);sn.add(nt);return true;});
+        var bg=uq.filter(function(p){return _0x36(p.HSSPLY_ADRES,'busan');});
+        var sl=uq.filter(function(p){return!_0x36(p.HSSPLY_ADRES,'busan')&&_0x36(p.HSSPLY_ADRES,'seoul');}).sort(function(a,b){return(parseInt(b.TOT_SUPLY_HSHLDCO,10)||0)-(parseInt(a.TOT_SUPLY_HSHLDCO,10)||0);}).slice(0,80);
+        var et=uq.filter(function(p){return!_0x36(p.HSSPLY_ADRES,'busan')&&!_0x36(p.HSSPLY_ADRES,'seoul');}).sort(function(a,b){return(parseInt(b.TOT_SUPLY_HSHLDCO,10)||0)-(parseInt(a.TOT_SUPLY_HSHLDCO,10)||0);}).slice(0,40);
+        var it=bg.concat(sl).concat(et),ex=new Set(it.map(function(i){return _0x31(i.HOUSE_NM);}));
+        _0x2a.forEach(function(x){if(!ex.has(_0x31(x.HOUSE_NM)))it.unshift(x);});
+        _0x3a(it);
+        var vl=it.filter(function(p){return!!p.HSSPLY_ADRES;});_0x97=vl.length;
+        document.getElementById('status').innerText="전국 맞춤형 "+_0x97+"건 로드 중...";
+        vl.forEach(function(p,ix){
+            var nm=p.HOUSE_NM||"아파트명 미제공",ad=p.HSSPLY_ADRES,ce=p.CNTRCT_CNCLS_ENDDE||"",st=_0x38(ce);
+            var bt=st==='apt'?"실시간 청약":st==='fcfs'?"선착순 계약 (잔여·마감 확인)":st==='old'?"입주완료 · 분양권/전월세 상담":"⚠️ 1년 경과·분양마감 확인필요";
+            var bc=st==='apt'?"badge-apt":st==='fcfs'?"badge-fcfs":st==='old'?"badge-old":"badge-check";
+            var ds=st==='apt'?("접수: "+(p.RCEPT_BGNDE||"-")+" ~ "+(p.RCEPT_ENDDE||"-")):("정당계약 마감 ("+ce+")");
+            setTimeout(function(){
+                _0x44(nm,ad,function(co){
+                    _0x98++;
+                    if(co){
+                        var sh=_0x36(ad,_0x95)&&_0x3b(st,_0x96),mk=new kakao.maps.Marker({map:sh?_0x91:null,position:co}),ct=document.createElement('div');
+                        ct.className='info-box';ct.innerHTML='<span class="badge '+bc+'">'+bt+'</span><div class="title">'+nm+'</div><div class="desc">'+ds+'</div><div class="click-hint">클릭 시 체크포인트·상담 👆</div>';
+                        ct.onclick=function(){_0x41(p,st);};kakao.maps.event.addListener(mk,'click',function(){_0x41(p,st);});
+                        var ov=new kakao.maps.CustomOverlay({map:sh?_0x91:null,position:co,content:ct,yAnchor:1.3});
+                        _0x94.push({marker:mk,overlay:ov,statusType:st,addr:ad});
                     }
-                    applyFilters();
+                    _0x3c();
                 });
-            }, idx * 75);
+            },ix*75);
         });
-    })
-    .catch(function(err) {
-        console.error(err);
-        document.getElementById('status').innerText = "API 연결 대기 중";
-    });
-
-    function renderClickableMarker(position, badgeText, badgeClass, title, desc, aptData, statusType, rawAddr) {
-        var regionMatch = matchRegion(rawAddr, currentRegion);
-        var typeMatch = checkFilterMatch(statusType, currentFilter);
-        var shouldShow = regionMatch && typeMatch;
-
-        var marker = new kakao.maps.Marker({
-            map: shouldShow ? map : null,
-            position: position
-        });
-
-        var content = document.createElement('div');
-        content.className = 'info-box';
-        content.innerHTML = `
-            <span class="badge ${badgeClass}">${badgeText}</span>
-            <div class="title">${title}</div>
-            <div class="desc">${desc}</div>
-            <div class="click-hint">클릭 시 체크포인트·상담 👆</div>
-        `;
-
-        content.onclick = function() {
-            openModal(aptData, statusType);
-        };
-        kakao.maps.event.addListener(marker, 'click', function() {
-            openModal(aptData, statusType);
-        });
-
-        var overlay = new kakao.maps.CustomOverlay({
-            map: shouldShow ? map : null,
-            position: position,
-            content: content,
-            yAnchor: 1.3
-        });
-
-        allMarkerItems.push({
-            marker: marker,
-            overlay: overlay,
-            statusType: statusType,
-            addr: rawAddr
-        });
-    }
+    }).catch(function(){document.getElementById('status').innerText="API 연결 대기 중";});
+})(window);
 </script>
 </body>
 </html>
