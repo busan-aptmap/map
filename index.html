@@ -19,7 +19,6 @@
             width: 100%;
             height: 100vh;
         }
-        /* 검색엔진(네이버·구글) 크롤러 전용 시맨틱 텍스트 영역 (지도 UI 간섭 없음) */
         .seo-sr-only {
             position: absolute;
             left: -9999px;
@@ -54,7 +53,7 @@
             border: none;
             background: #f1f5f9;
             color: #475569;
-            padding: 8px 12px;
+            padding: 8px 10px;
             font-size: 13px;
             font-weight: bold;
             border-radius: 6px;
@@ -66,6 +65,7 @@
         .btn-filter.active { background: #0f172a; color: #ffffff; }
         .btn-filter.fcfs-btn.active { background: #ea580c; color: #ffffff; }
         .btn-filter.apt-btn.active { background: #16a34a; color: #ffffff; }
+        .btn-filter.old-btn.active { background: #4f46e5; color: #ffffff; }
 
         .status-badge {
             position: absolute;
@@ -117,15 +117,17 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(15, 23, 42, 0.55);
+            background: rgba(15, 23, 42, 0.6);
             z-index: 999;
             justify-content: center;
             align-items: center;
         }
         .modal-content {
             background: #ffffff;
-            width: 90%;
-            max-width: 420px;
+            width: 92%;
+            max-width: 440px;
+            max-height: 88vh;
+            overflow-y: auto;
             border-radius: 12px;
             padding: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
@@ -135,19 +137,42 @@
             position: absolute;
             top: 14px;
             right: 16px;
-            font-size: 20px;
+            font-size: 22px;
             cursor: pointer;
             color: #64748b;
             background: none;
             border: none;
+            line-height: 1;
         }
-        .modal-title { font-size: 17px; font-weight: bold; color: #0f172a; margin-bottom: 12px; }
+        .modal-title { font-size: 17px; font-weight: bold; color: #0f172a; margin-bottom: 12px; padding-right: 24px; }
         .modal-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 14px; }
         .modal-table th { text-align: left; color: #64748b; padding: 6px 4px; border-bottom: 1px solid #e2e8f0; width: 85px; }
         .modal-table td { color: #0f172a; padding: 6px 4px; border-bottom: 1px solid #e2e8f0; }
         .expert-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; }
         .expert-box-title { font-size: 12px; font-weight: bold; color: #0f172a; margin-bottom: 6px; }
         .expert-box-list { margin: 0; padding-left: 16px; font-size: 11px; color: #334155; line-height: 1.5; }
+
+        /* 클릭 가능한 담당 직원 배지 및 부동산 배지 스타일 */
+        .staff-badge-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            font-size: 12px;
+            color: #1e40af;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            padding: 9px 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            box-sizing: border-box;
+            text-align: left;
+            transition: background 0.15s ease;
+        }
+        .staff-badge-btn:hover { background: #dbeafe; }
+
         .consult-group { display: flex; gap: 8px; margin-bottom: 8px; }
         .btn-kakao, .btn-call {
             flex: 1;
@@ -162,18 +187,20 @@
         .btn-kakao { background: #fee500; color: #191919; }
         .btn-call { background: #2563eb; color: #ffffff; }
         .btn-realty-full {
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             width: 100%;
-            text-align: center;
-            padding: 11px 10px;
+            padding: 11px 12px;
+            border: none;
             border-radius: 8px;
             font-size: 12px;
             font-weight: bold;
-            text-decoration: none;
             background: #0f172a;
             color: #ffffff;
             box-sizing: border-box;
             margin-bottom: 8px;
+            cursor: pointer;
         }
         .btn-realty-full:hover { background: #1e293b; }
         .modal-btn-link {
@@ -184,12 +211,128 @@
             text-decoration: underline;
             margin-top: 6px;
         }
+
+        /* 서브 상세 뷰(담당 직원 / 전담 부동산 매물 카드) */
+        .sub-back-btn {
+            display: inline-block;
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+        .profile-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        .profile-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #2563eb;
+            background: #e2e8f0;
+            flex-shrink: 0;
+        }
+        .profile-placeholder {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #dbeafe;
+            color: #1e40af;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        .condition-box {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            font-size: 12px;
+            color: #7c2d12;
+            line-height: 1.5;
+        }
+        .media-gallery {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .media-gallery img {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            object-fit: cover;
+        }
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            height: 0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 12px;
+            background: #000;
+        }
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+        .listing-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .listing-item-card {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px;
+        }
+        .listing-thumb {
+            width: 72px;
+            height: 58px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: #e2e8f0;
+            flex-shrink: 0;
+        }
+        .listing-text {
+            font-size: 12px;
+            color: #0f172a;
+            line-height: 1.4;
+            font-weight: 500;
+        }
+
         @media (max-width: 768px) {
             .control-panel { top: 8px; left: 8px; right: 8px; gap: 4px; }
-            .region-controls { padding: 4px; gap: 4px; }
-            .btn-region, .btn-filter { padding: 6px 4px; font-size: 11px; }
+            .region-controls { padding: 4px; gap: 3px; }
+            .btn-region, .btn-filter { padding: 6px 3px; font-size: 11px; letter-spacing: -0.3px; }
             .status-badge { top: auto; bottom: 12px; right: 10px; font-size: 10px; padding: 6px 10px; }
-            .modal-content { width: 92%; max-height: 85vh; overflow-y: auto; padding: 14px; }
+            .modal-content { width: 92%; max-height: 85vh; padding: 14px; }
         }
     </style>
     <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=42553244187f3d43b01f98a4468460dc&libraries=services"></script>
@@ -203,9 +346,10 @@
         <button class="btn-region" onclick="moveToRegion('seoul', this)">수도권</button>
     </div>
     <div class="region-controls">
-        <button class="btn-filter active" onclick="filterMarkers('all', this)">전체 단지</button>
-        <button class="btn-filter fcfs-btn" onclick="filterMarkers('fcfs', this)">선착순·미분양만</button>
-        <button class="btn-filter apt-btn" onclick="filterMarkers('apt', this)">실시간 청약만</button>
+        <button class="btn-filter active" onclick="filterMarkers('all', this)">전체</button>
+        <button class="btn-filter apt-btn" onclick="filterMarkers('apt', this)">실시간 청약</button>
+        <button class="btn-filter fcfs-btn" onclick="filterMarkers('fcfs', this)">선착순·미분양</button>
+        <button class="btn-filter old-btn" onclick="filterMarkers('old', this)">입주완료</button>
     </div>
 </div>
 
@@ -241,6 +385,8 @@
     var currentFilter = 'all';
     var totalTargetCount = 0;
     var loadedCount = 0;
+    var activeModalApt = null;
+    var activeModalStatus = null;
 
     var mustIncludeList = [
         {
@@ -469,7 +615,6 @@
         return statusType === 'apt' || statusType === 'fcfs';
     }
 
-    // [검색엔진(SEO) 전용 실시간 청약 + 선착순 계약 현장 전체 자동 주입]
     function populateSeoDirectory(items) {
         var listEl = document.getElementById('seoDynamicList');
         var kwMeta = document.getElementById('dynamicKeywords');
@@ -497,13 +642,20 @@
         }
     }
 
+    // [4칸 세분화 필터링 적용: 전체 / 실시간 청약 / 선착순·미분양 / 입주완료]
+    function checkFilterMatch(itemStatusType, filterType) {
+        if (filterType === 'all') return true;
+        if (filterType === 'apt') return itemStatusType === 'apt';
+        if (filterType === 'fcfs') return itemStatusType === 'fcfs' || itemStatusType === 'check';
+        if (filterType === 'old') return itemStatusType === 'old';
+        return true;
+    }
+
     function applyFilters() {
         var visibleCount = 0;
         allMarkerItems.forEach(function(item) {
             var regionMatch = matchRegion(item.addr, currentRegion);
-            var typeMatch = (currentFilter === 'all') ||
-                            (currentFilter === 'fcfs' && item.isFcfs) ||
-                            (currentFilter === 'apt' && !item.isFcfs);
+            var typeMatch = checkFilterMatch(item.statusType, currentFilter);
 
             var shouldShow = regionMatch && typeMatch;
             item.marker.setMap(shouldShow ? map : null);
@@ -566,6 +718,27 @@
             .trim();
     }
 
+    // 쉼표가 포함된 셀도 안전하게 분리하는 CSV 파서
+    function parseCsvLine(line) {
+        var result = [];
+        var cur = "";
+        var inQuotes = false;
+        for (var i = 0; i < line.length; i++) {
+            var ch = line[i];
+            if (ch === '"') {
+                inQuotes = !inQuotes;
+            } else if (ch === ',' && !inQuotes) {
+                result.push(cur.trim());
+                cur = "";
+            } else {
+                cur += ch;
+            }
+        }
+        result.push(cur.trim());
+        return result;
+    }
+
+    // [구글 시트 확장 연동: A~I 기본정보 + J~M 현장담당자 미디어 + N~R 전담부동산 매물]
     var sheetManagers = [];
     var SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9i0XauGTtL6JWFSjKx0trX6LAnw-_hvb6LV3YEe1RKWnZLSxyi2szhaYaHyrSqDj5rwdIZLuO53Vt/pub?gid=0&single=true&output=csv";
 
@@ -574,17 +747,31 @@
         .then(function(csvText) {
             var lines = csvText.split(/\r?\n/);
             for (var i = 1; i < lines.length; i++) {
-                var cols = lines[i].split(",");
+                if (!lines[i].trim()) continue;
+                var cols = parseCsvLine(lines[i]);
                 if (cols.length >= 6) {
-                    var keyword = (cols[0] || "").replace(/^"|"$/g, "").trim();
-                    var role = (cols[1] || "").replace(/^"|"$/g, "").trim();
-                    var managerName = (cols[2] || "").replace(/^"|"$/g, "").trim();
-                    var phone = (cols[3] || "").replace(/^"|"$/g, "").trim();
-                    var kakao = (cols[4] || "").replace(/^"|"$/g, "").trim();
-                    var status = (cols[5] || "").replace(/^"|"$/g, "").trim().toUpperCase();
-                    var endDate = (cols[6] || "").replace(/^"|"$/g, "").trim();
-                    var customLat = parseFloat((cols[7] || "").replace(/^"|"$/g, "").trim());
-                    var customLng = parseFloat((cols[8] || "").replace(/^"|"$/g, "").trim());
+                    var keyword = (cols[0] || "").trim();
+                    var role = (cols[1] || "").trim();
+                    var managerName = (cols[2] || "").trim();
+                    var phone = (cols[3] || "").trim();
+                    var kakao = (cols[4] || "").trim();
+                    var status = (cols[5] || "").trim().toUpperCase();
+                    var endDate = (cols[6] || "").trim();
+                    var customLat = parseFloat((cols[7] || "").trim());
+                    var customLng = parseFloat((cols[8] || "").trim());
+
+                    // 확장 컬럼 (J~R)
+                    var staffPhoto = (cols[9] || "").trim();
+                    var salesCondition = (cols[10] || "").trim();
+                    var siteImagesRaw = (cols[11] || "").trim();
+                    var siteYoutube = (cols[12] || "").trim();
+                    var realtyIntro = (cols[13] || "").trim();
+                    var listings = [
+                        (cols[14] || "").trim(),
+                        (cols[15] || "").trim(),
+                        (cols[16] || "").trim(),
+                        (cols[17] || "").trim()
+                    ].filter(function(item) { return !!item; });
 
                     if (keyword && status === "ON") {
                         sheetManagers.push({
@@ -595,7 +782,13 @@
                             kakao: kakao,
                             endDate: endDate,
                             customLat: !isNaN(customLat) ? customLat : null,
-                            customLng: !isNaN(customLng) ? customLng : null
+                            customLng: !isNaN(customLng) ? customLng : null,
+                            staffPhoto: staffPhoto,
+                            salesCondition: salesCondition,
+                            siteImages: siteImagesRaw ? siteImagesRaw.split("|").map(function(s) { return s.trim(); }).filter(Boolean) : [],
+                            siteYoutube: siteYoutube,
+                            realtyIntro: realtyIntro,
+                            listings: listings
                         });
                     }
                 }
@@ -615,8 +808,134 @@
         return null;
     }
 
-    function openModal(apt, statusType) {
-        var modalOverlay = document.getElementById('modalOverlay');
+    function getYoutubeEmbedUrl(url) {
+        if (!url) return "";
+        var match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);
+        return match ? ("https://www.youtube.com/embed/" + match[1]) : "";
+    }
+
+    // [서브 뷰 1: 현장 담당 직원 프로필 + 분양조건 + 이미지/동영상]
+    function openStaffDetailView() {
+        if (!activeModalApt) return;
+        var modalBody = document.getElementById('modalBody');
+        var name = activeModalApt.HOUSE_NM || "현장 안내";
+        var assigned = getAssignedManager(name) || {};
+        var targetKakao = assigned.kakao || "https://open.kakao.com/o/sg4ZB3Wi";
+        var targetPhone = assigned.phone || "010-3974-7087";
+        var staffTitle = (assigned.role ? assigned.role + " " : "") + (assigned.managerName || "분양 전담 매니저");
+
+        var avatarHtml = assigned.staffPhoto
+            ? `<img src="${assigned.staffPhoto}" alt="${staffTitle}" class="profile-avatar">`
+            : `<div class="profile-placeholder">👤</div>`;
+
+        var conditionText = assigned.salesCondition
+            ? assigned.salesCondition
+            : "잔여 동·호수 현황, 계약금 조건 및 중도금 대출 혜택은 담당 매니저에게 1:1 문의 시 실시간 로열층 기준으로 안내해 드립니다.";
+
+        var mediaHtml = "";
+        var embedUrl = getYoutubeEmbedUrl(assigned.siteYoutube);
+        if (embedUrl) {
+            mediaHtml += `
+                <div class="video-wrapper">
+                    <iframe src="${embedUrl}" allowfullscreen></iframe>
+                </div>
+            `;
+        }
+        if (assigned.siteImages && assigned.siteImages.length > 0) {
+            mediaHtml += `<div class="media-gallery">` +
+                assigned.siteImages.map(function(imgUrl) {
+                    return `<img src="${imgUrl}" alt="${name} 현장 안내">`;
+                }).join("") +
+                `</div>`;
+        }
+
+        modalBody.innerHTML = `
+            <button class="sub-back-btn" onclick="renderMainModal()">← 단지 기본정보로 돌아가기</button>
+            <div class="modal-title">${name} 전담 안내</div>
+            <div class="profile-card">
+                ${avatarHtml}
+                <div>
+                    <div style="font-size:14px; font-weight:bold; color:#0f172a; margin-bottom:4px;">${staffTitle}</div>
+                    <div style="font-size:11px; color:#475569;">현장 모델하우스 · 동호수 지정 공식 안내</div>
+                    <div style="font-size:11px; color:#2563eb; font-weight:bold; margin-top:4px;">📞 ${targetPhone}</div>
+                </div>
+            </div>
+
+            <div class="condition-box">
+                <div style="font-weight:bold; margin-bottom:4px;">📌 현장 핵심 분양조건 안내</div>
+                <div>${conditionText}</div>
+            </div>
+
+            ${mediaHtml}
+
+            <div class="consult-group">
+                <a href="${targetKakao}" target="_blank" class="btn-kakao">💬 담당자 카톡 1:1 상담</a>
+                <a href="tel:${targetPhone}" class="btn-call">📞 담당자 직통 연결</a>
+            </div>
+        `;
+    }
+
+    // [서브 뷰 2: 전담 부동산 소개 및 주력 분양권·전월세 매물(사진 포함)]
+    function openRealtyDetailView() {
+        if (!activeModalApt) return;
+        var modalBody = document.getElementById('modalBody');
+        var name = activeModalApt.HOUSE_NM || "단지 안내";
+        var assigned = getAssignedManager(name) || {};
+        var targetKakao = assigned.kakao || "https://open.kakao.com/o/sg4ZB3Wi";
+        var targetPhone = assigned.phone || "010-3974-7087";
+
+        var introText = assigned.realtyIntro
+            ? assigned.realtyIntro
+            : "공인중개사 · 권리분석사가 직접 검증한 분양권 전매, 입주권 및 전세·월세 매물을 안전하게 책임 중개합니다.";
+
+        var listingsHtml = "";
+        if (assigned.listings && assigned.listings.length > 0) {
+            listingsHtml = `<div class="listing-grid">` + assigned.listings.map(function(rawItem) {
+                var parts = rawItem.split("::");
+                var desc = (parts[0] || "").trim();
+                var photo = (parts[1] || "").trim();
+                var imgTag = photo
+                    ? `<img src="${photo}" alt="매물 사진" class="listing-thumb">`
+                    : `<div class="listing-thumb" style="display:flex;align-items:center;justify-content:center;font-size:20px;">🏢</div>`;
+                return `
+                    <div class="listing-item-card">
+                        ${imgTag}
+                        <div class="listing-text">${desc}</div>
+                    </div>
+                `;
+            }).join("") + `</div>`;
+        } else {
+            listingsHtml = `
+                <div class="listing-grid">
+                    <div class="listing-item-card">
+                        <div class="listing-thumb" style="display:flex;align-items:center;justify-content:center;font-size:20px;">🔑</div>
+                        <div class="listing-text"><strong>${name} 주력 분양권 · 입주 매물</strong><br>로열동·로열층 분양권 매도/매수 및 전세·월세 실시간 접수 중</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        modalBody.innerHTML = `
+            <button class="sub-back-btn" onclick="renderMainModal()">← 단지 기본정보로 돌아가기</button>
+            <div class="modal-title">🏢 전담 부동산 분양권 · 전세/월세</div>
+            <div class="expert-box">
+                <div class="expert-box-title">전담 중개사무소 안내</div>
+                <div style="font-size:12px; color:#334155; line-height:1.5;">${introText}</div>
+            </div>
+
+            <div style="font-size:12px; font-weight:bold; color:#0f172a; margin-bottom:8px;">📋 추천 주력 매물 현황</div>
+            ${listingsHtml}
+
+            <div class="consult-group">
+                <a href="${targetKakao}" target="_blank" class="btn-kakao">💬 매물·분양권 카톡 문의</a>
+                <a href="tel:${targetPhone}" class="btn-call">📞 중개사무소 전화 연결</a>
+            </div>
+        `;
+    }
+
+    function renderMainModal() {
+        var apt = activeModalApt;
+        var statusType = activeModalStatus;
         var modalBody = document.getElementById('modalBody');
 
         var name = apt.HOUSE_NM || "단지명 미제공";
@@ -633,7 +952,7 @@
         var statusBadge = statusType === 'apt'
             ? `<span class="badge badge-apt">실시간 청약 일정 진행중</span>`
             : statusType === 'old'
-            ? `<span class="badge badge-old">입주완료 · 잔여세대 및 매물/전월세 상담</span>`
+            ? `<span class="badge badge-old">입주완료 · 잔여세대 및 분양권/전월세 상담</span>`
             : `<span class="badge badge-fcfs">정당계약 종료 (선착순 동호수 지정·상담)</span>`;
 
         var checkPoints = statusType === 'apt'
@@ -641,7 +960,7 @@
                <li><strong>가점제·추첨제 비율:</strong> 전용면적별 가점제/추첨제 당첨 비율 및 생애최초·신혼부부 특별공급 중복 청약 여부 체크</li>
                <li><strong>계약금 및 대출 한도:</strong> 당첨자 발표 후 정당계약일까지 초기 계약금(10%) 마련 및 중도금 대출 가능 여부 확인</li>`
             : statusType === 'old'
-            ? `<li><strong>입주 후 매매·전월세 시세:</strong> 단지 내 실거래가 추이, 동·층별 로열동 매물 현황 및 전세가율 비교 점검</li>
+            ? `<li><strong>입주 후 분양권·전월세 시세:</strong> 단지 내 실거래가 추이, 동·층별 로열동 매물 현황 및 전세가율 비교 점검</li>
                <li><strong>등기·권리관계 분석:</strong> 소유권이전등기 완료 여부, 근저당권 설정 내역 및 전세보증보험 가입 요건 확인</li>
                <li><strong>잔여 회사보유분 체크:</strong> 일부 단지의 경우 준공 후 미분양·회사보유분 특별조건 분양 물량 유무 별도 확인 가능</li>`
             : `<li><strong>청약통장 불필요:</strong> 만 19세 이상이면 거주지·주택수 무관하게 잔여 동·호수 선착순 지정 계약 가능</li>
@@ -671,17 +990,23 @@
         var assigned = getAssignedManager(name);
         var targetKakao = (assigned && assigned.kakao) ? assigned.kakao : "https://open.kakao.com/o/sg4ZB3Wi";
         var targetPhone = (assigned && assigned.phone) ? assigned.phone : "010-3974-7087";
-        var managerBadge = (assigned && assigned.managerName)
-            ? `<div style="font-size:12px; color:#1e40af; background:#eff6ff; padding:6px 10px; border-radius:6px; margin-bottom:8px; font-weight:bold; text-align:center;">👤 전담 안내: ${assigned.role ? assigned.role + " " : ""}${assigned.managerName}</div>`
-            : "";
+        var staffLabel = (assigned && assigned.managerName)
+            ? `👤 전담 안내: ${assigned.role ? assigned.role + " " : ""}${assigned.managerName}`
+            : `👤 현장 담당 매니저 · 분양조건 안내`;
 
         html += `
-        ${managerBadge}
+        <button type="button" class="staff-badge-btn" onclick="openStaffDetailView()">
+            <span>${staffLabel}</span>
+            <span style="font-size:11px; color:#2563eb;">프로필·영상 보기 〉</span>
+        </button>
         <div class="consult-group">
             <a href="${targetKakao}" target="_blank" class="btn-kakao">💬 카톡 1:1 잔여세대·권리상담</a>
             <a href="tel:${targetPhone}" class="btn-call">📞 현장 직통 전화상담</a>
         </div>
-        <a href="${targetKakao}" target="_blank" class="btn-realty-full">🏢 전담 부동산 매물 · 전세/월세 상담</a>
+        <button type="button" class="btn-realty-full" onclick="openRealtyDetailView()">
+            <span>🏢 전담 부동산 분양권 · 전세/월세 상담</span>
+            <span style="font-size:11px; color:#93c5fd;">주력매물 보기 〉</span>
+        </button>
         `;
 
         if (url) {
@@ -689,7 +1014,13 @@
         }
 
         modalBody.innerHTML = html;
-        modalOverlay.style.display = 'flex';
+    }
+
+    function openModal(apt, statusType) {
+        activeModalApt = apt;
+        activeModalStatus = statusType;
+        renderMainModal();
+        document.getElementById('modalOverlay').style.display = 'flex';
     }
 
     function closeModal() {
@@ -874,7 +1205,6 @@
             }
         });
 
-        // 검색엔진 색인용 실시간 청약·선착순 현장 자동 업데이트
         populateSeoDirectory(items);
 
         var validItems = items.filter(function(apt) { return !!apt.HSSPLY_ADRES; });
@@ -887,10 +1217,9 @@
             var contractEnd = apt.CNTRCT_CNCLS_ENDDE || "";
 
             var statusType = getAptStatus(contractEnd);
-            var isFcfs = (statusType === 'fcfs' || statusType === 'check' || statusType === 'old');
             var badgeText = statusType === 'apt' ? "실시간 청약"
                           : statusType === 'fcfs' ? "선착순 계약 (잔여·마감 확인)"
-                          : statusType === 'old' ? "입주완료 · 매물/전월세 상담"
+                          : statusType === 'old' ? "입주완료 · 분양권/전월세 상담"
                           : "⚠️ 1년 경과·분양마감 확인필요";
             var badgeClass = statusType === 'apt' ? "badge-apt"
                            : statusType === 'fcfs' ? "badge-fcfs"
@@ -904,7 +1233,7 @@
                 findAccurateCoords(name, rawAddr, function(coords) {
                     loadedCount++;
                     if (coords) {
-                        renderClickableMarker(coords, badgeText, badgeClass, name, descText, apt, statusType, isFcfs, rawAddr);
+                        renderClickableMarker(coords, badgeText, badgeClass, name, descText, apt, statusType, rawAddr);
                     }
                     applyFilters();
                 });
@@ -916,11 +1245,9 @@
         document.getElementById('status').innerText = "API 연결 대기 중";
     });
 
-    function renderClickableMarker(position, badgeText, badgeClass, title, desc, aptData, statusType, isFcfs, rawAddr) {
+    function renderClickableMarker(position, badgeText, badgeClass, title, desc, aptData, statusType, rawAddr) {
         var regionMatch = matchRegion(rawAddr, currentRegion);
-        var typeMatch = (currentFilter === 'all') ||
-                        (currentFilter === 'fcfs' && isFcfs) ||
-                        (currentFilter === 'apt' && !isFcfs);
+        var typeMatch = checkFilterMatch(statusType, currentFilter);
         var shouldShow = regionMatch && typeMatch;
 
         var marker = new kakao.maps.Marker({
@@ -954,7 +1281,7 @@
         allMarkerItems.push({
             marker: marker,
             overlay: overlay,
-            isFcfs: isFcfs,
+            statusType: statusType,
             addr: rawAddr
         });
     }
