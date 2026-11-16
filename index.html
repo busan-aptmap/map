@@ -177,12 +177,13 @@
         .btn-kakao, .btn-call {
             flex: 1;
             text-align: center;
-            padding: 10px;
+            padding: 10px 6px;
             border-radius: 8px;
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: bold;
             text-decoration: none;
             box-sizing: border-box;
+            letter-spacing: -0.3px;
         }
         .btn-kakao { background: #fee500; color: #191919; }
         .btn-call { background: #2563eb; color: #ffffff; }
@@ -642,7 +643,7 @@
         }
     }
 
-    // [4칸 세분화 필터링 적용: 전체 / 실시간 청약 / 선착순·미분양 / 입주완료]
+    // [4칸 세분화 필터링: 전체 / 실시간 청약 / 선착순·미분양 / 입주완료]
     function checkFilterMatch(itemStatusType, filterType) {
         if (filterType === 'all') return true;
         if (filterType === 'apt') return itemStatusType === 'apt';
@@ -718,7 +719,6 @@
             .trim();
     }
 
-    // 쉼표가 포함된 셀도 안전하게 분리하는 CSV 파서
     function parseCsvLine(line) {
         var result = [];
         var cur = "";
@@ -760,7 +760,6 @@
                     var customLat = parseFloat((cols[7] || "").trim());
                     var customLng = parseFloat((cols[8] || "").trim());
 
-                    // 확장 컬럼 (J~R)
                     var staffPhoto = (cols[9] || "").trim();
                     var salesCondition = (cols[10] || "").trim();
                     var siteImagesRaw = (cols[11] || "").trim();
@@ -869,7 +868,7 @@
             ${mediaHtml}
 
             <div class="consult-group">
-                <a href="${targetKakao}" target="_blank" class="btn-kakao">💬 담당자 카톡 1:1 상담</a>
+                <a href="${targetKakao}" target="_blank" class="btn-kakao">💬 카톡 1:1 계약조건·잔여세대 상담</a>
                 <a href="tel:${targetPhone}" class="btn-call">📞 담당자 직통 연결</a>
             </div>
         `;
@@ -1000,7 +999,7 @@
             <span style="font-size:11px; color:#2563eb;">프로필·영상 보기 〉</span>
         </button>
         <div class="consult-group">
-            <a href="${targetKakao}" target="_blank" class="btn-kakao">💬 카톡 1:1 잔여세대·권리상담</a>
+            <a href="${targetKakao}" target="_blank" class="btn-kakao">💬 카톡 1:1 계약조건·잔여세대 상담</a>
             <a href="tel:${targetPhone}" class="btn-call">📞 현장 직통 전화상담</a>
         </div>
         <button type="button" class="btn-realty-full" onclick="openRealtyDetailView()">
