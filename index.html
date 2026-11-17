@@ -37,9 +37,7 @@
     <div class="brand-watermark-sub">
         <span>문의 010-3974-7087</span>
         <span>·</span>
-        <a href="https://sites.google.com/view/busan-aptmap" target="_blank">공식 홈페이지 ↗</a>
-        <span>·</span>
-        <a href="https://open.kakao.com/o/sg4ZB3Wi" target="_blank">1:1 카톡상담 ↗</a>
+        <a id="watermarkKakaoLink" href="https://open.kakao.com/o/sg4ZB3Wi" target="_blank" rel="noopener noreferrer">현장 입점문의 ↗</a>
     </div>
 </div>
 
@@ -68,6 +66,8 @@
         _0x5f2d("aHR0cHM6Ly9vcGVuLmtha2FvLmNvbS9vL3NnNFpCM1dp"),
         _0x5f2d("MDEwLTM5NzQtNzA4Nw==")
     ];
+    var _0x8c11 = document.getElementById('watermarkKakaoLink');
+    if(_0x8c11){ _0x8c11.href = _0x3b8e[3]; }
     var _0x91 = new kakao.maps.Map(document.getElementById('map'), { center: new kakao.maps.LatLng(35.1795543, 129.0756416), level: 8 });
     var _0x92 = new kakao.maps.services.Geocoder();
     var _0x93 = new kakao.maps.services.Places();
@@ -183,7 +183,7 @@
         var md="",em=_0x40(as.siteYoutube);
         if(em)md+='<div class="video-wrapper"><iframe src="'+em+'" allowfullscreen></iframe></div>';
         if(as.siteImages&&as.siteImages.length>0)md+='<div class="media-gallery">'+as.siteImages.map(function(u){return'<img src="'+u+'" alt="'+nm+'">';}).join("")+'</div>';
-        mb.innerHTML='<button class="sub-back-btn" onclick="_0x6f4b()">← 단지 기본정보로 돌아가기</button><div class="modal-title">'+nm+' 전담 안내</div><div class="profile-card">'+av+'<div><div style="font-size:14px;font-weight:bold;color:#0f172a;margin-bottom:4px;">'+st+'</div><div style="font-size:11px;color:#475569;">현장 모델하우스 · 청약 및 동호수 지정 공식 안내</div><div style="font-size:11px;color:#2563eb;font-weight:bold;margin-top:4px;">📞 '+ph+'</div></div></div><div class="condition-box"><div style="font-weight:bold;margin-bottom:4px;">📌 현장 핵심 분양조건 안내</div><div>'+cd+'</div></div>'+md+'<div class="consult-group"><a href="'+kk+'" target="_blank" class="btn-kakao">'+kb+'</a><a href="tel:'+ph+'" class="btn-call">📞 현장 직통 전화상담</a></div><div class="modal-brand-footer">분양맵 | 부산 미분양·선착순 공식 지도 · 문의 '+_0x3b8e[4]+'</div>';
+        mb.innerHTML='<button class="sub-back-btn" onclick="_0x6f4b()">← 단지 기본정보로 돌아가기</button><div class="modal-title">'+nm+' 전담 안내</div><div class="profile-card">'+av+'<div><div style="font-size:14px;font-weight:bold;color:#0f172a;margin-bottom:4px;">'+st+'</div><div style="font-size:11px;color:#475569;">현장 모델하우스 · 청약 및 동호수 지정 공식 안내</div><div style="font-size:11px;color:#2563eb;font-weight:bold;margin-top:4px;">📞 '+ph+'</div></div></div><div class="condition-box"><div style="font-weight:bold;margin-bottom:4px;">📌 현장 핵심 분양조건 안내</div><div>'+cd+'</div></div>'+md+'<div class="consult-group"><a href="'+kk+'" target="_blank" rel="noopener noreferrer" class="btn-kakao">'+kb+'</a><a href="tel:'+ph+'" class="btn-call">📞 현장 직통 전화상담</a></div><div class="modal-brand-footer">분양맵 | 부산 미분양·선착순 공식 지도 · 문의 '+_0x3b8e[4]+'</div>';
     };
 
     _0x1c9a._0x5e8d=function(){
@@ -194,7 +194,7 @@
         }else{
             lh='<div class="listing-grid"><div class="listing-item-card"><div class="listing-thumb" style="display:flex;align-items:center;justify-content:center;font-size:20px;">🔑</div><div class="listing-text"><strong>'+nm+' 주력 분양권 · 입주 매물</strong><br>로열동·로열층 분양권 매도/매수 및 전세·월세 실시간 접수 중</div></div></div>';
         }
-        mb.innerHTML='<button class="sub-back-btn" onclick="_0x6f4b()">← 단지 기본정보로 돌아가기</button><div class="modal-title">🏢 전담 부동산 분양권 · 전세/월세</div><div class="expert-box"><div class="expert-box-title">'+ot+'</div><div style="font-size:12px;color:#334155;line-height:1.5;">'+it+'</div></div><div style="font-size:12px;font-weight:bold;color:#0f172a;margin-bottom:8px;">📋 추천 주력 매물 현황</div>'+lh+'<div class="consult-group"><a href="'+kk+'" target="_blank" class="btn-kakao">💬 카톡 1:1 잔여세대·입주상담</a><a href="tel:'+ph+'" class="btn-call">📞 전담 부동산 직통 상담</a></div><div class="modal-brand-footer">분양맵 | 부산 미분양·선착순 공식 지도 · 문의 '+_0x3b8e[4]+'</div>';
+        mb.innerHTML='<button class="sub-back-btn" onclick="_0x6f4b()">← 단지 기본정보로 돌아가기</button><div class="modal-title">🏢 전담 부동산 분양권 · 전세/월세</div><div class="expert-box"><div class="expert-box-title">'+ot+'</div><div style="font-size:12px;color:#334155;line-height:1.5;">'+it+'</div></div><div style="font-size:12px;font-weight:bold;color:#0f172a;margin-bottom:8px;">📋 추천 주력 매물 현황</div>'+lh+'<div class="consult-group"><a href="'+kk+'" target="_blank" rel="noopener noreferrer" class="btn-kakao">💬 카톡 1:1 잔여세대·입주상담</a><a href="tel:'+ph+'" class="btn-call">📞 전담 부동산 직통 상담</a></div><div class="modal-brand-footer">분양맵 | 부산 미분양·선착순 공식 지도 · 문의 '+_0x3b8e[4]+'</div>';
     };
 
     _0x1c9a._0x6f4b=function(){
@@ -205,13 +205,13 @@
         var as=_0x3f(nm),kk=(as&&as.kakao)?as.kakao:_0x3b8e[3],ph=(as&&as.phone)?as.phone:_0x3b8e[4];
         if(st==='old'){
             var rt=(as&&as.managerName)?('🏢 전담 부동산: '+(as.role?as.role+" ":"")+as.managerName):'🏢 전담 부동산 분양권 · 전세/월세 상담';
-            ht+='<button type="button" class="btn-realty-full" onclick="_0x5e8d()"><span>'+rt+'</span><span style="font-size:11px;color:#93c5fd;">주력매물 보기 〉</span></button><div class="consult-group"><a href="'+kk+'" target="_blank" class="btn-kakao">💬 카톡 1:1 잔여세대·입주상담</a><a href="tel:'+ph+'" class="btn-call">📞 전담 부동산 직통 상담</a></div>';
+            ht+='<button type="button" class="btn-realty-full" onclick="_0x5e8d()"><span>'+rt+'</span><span style="font-size:11px;color:#93c5fd;">주력매물 보기 〉</span></button><div class="consult-group"><a href="'+kk+'" target="_blank" rel="noopener noreferrer" class="btn-kakao">💬 카톡 1:1 잔여세대·입주상담</a><a href="tel:'+ph+'" class="btn-call">📞 전담 부동산 직통 상담</a></div>';
         }else{
             var sl=(as&&as.managerName)?('👤 전담 안내: '+(as.role?as.role+" ":"")+as.managerName):'👤 현장 담당 매니저 · 분양조건 안내';
             var kl=st==='apt'?'💬 카톡 1:1 청약상담':'💬 카톡 1:1 계약조건·잔여세대 상담';
-            ht+='<button type="button" class="staff-badge-btn" onclick="_0x7c1a()"><span>'+sl+'</span><span style="font-size:11px;color:#2563eb;">프로필·영상 보기 〉</span></button><div class="consult-group"><a href="'+kk+'" target="_blank" class="btn-kakao">'+kl+'</a><a href="tel:'+ph+'" class="btn-call">📞 현장 직통 전화상담</a></div>';
+            ht+='<button type="button" class="staff-badge-btn" onclick="_0x7c1a()"><span>'+sl+'</span><span style="font-size:11px;color:#2563eb;">프로필·영상 보기 〉</span></button><div class="consult-group"><a href="'+kk+'" target="_blank" rel="noopener noreferrer" class="btn-kakao">'+kl+'</a><a href="tel:'+ph+'" class="btn-call">📞 현장 직통 전화상담</a></div>';
         }
-        if(ur)ht+='<a href="'+ur+'" target="_blank" class="modal-btn-link">청약홈 원본 공고문 확인하기 ↗</a>';
+        if(ur)ht+='<a href="'+ur+'" target="_blank" rel="noopener noreferrer" class="modal-btn-link">청약홈 원본 공고문 확인하기 ↗</a>';
         ht+='<div class="modal-brand-footer">분양맵 | 부산 미분양·선착순 공식 지도 · 문의 '+_0x3b8e[4]+'</div>';
         mb.innerHTML=ht;
     };
