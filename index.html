@@ -143,8 +143,13 @@
         el.innerHTML=ht.join("");if(kw&&nm.length>0)kw.setAttribute("content","지오홈, 부산 선착순 분양지도, 부산 미분양 아파트, 실시간 청약, "+nm.slice(0,60).join(", "));
     }
     function _0x3b(st,ft){if(ft==='all')return true;if(ft==='apt')return st==='apt';if(ft==='fcfs')return st==='fcfs'||st==='check';if(ft==='old')return st==='old';return true;}
-    function _0x3c(){
-        var v=0;_0x94.forEach(function(i){var sh=_0x36(i.addr,_0x95)&&_0x3b(i.statusType,_0x96);i.marker.setMap(sh?_0x91:null);i.overlay.setMap(sh?_0x91:null);if(sh)v++;});
+    function _0x3c(skipToggle){
+        var v=0;
+        for(var k=0;k<_0x94.length;k++){
+            var i=_0x94[k],sh=_0x36(i.addr,_0x95)&&_0x3b(i.statusType,_0x96);
+            if(!skipToggle){i.marker.setMap(sh?_0x91:null);i.overlay.setMap(sh?_0x91:null);}
+            if(sh)v++;
+        }
         var lb=_0x95==='busan'?'부산·경남':_0x95==='seoul'?'수도권':'전국';
         document.getElementById('status').innerText=lb+" 표시: "+v+"곳"+(_0x98<_0x97?" (로딩 중...)":"");
     }
@@ -153,9 +158,9 @@
         if(t==='busan'){_0x91.setLevel(8);_0x91.panTo(new kakao.maps.LatLng(35.1795543,129.0756416));}
         else if(t==='national'){_0x91.setLevel(12);_0x91.panTo(new kakao.maps.LatLng(36.3504,127.3845));}
         else if(t==='seoul'){_0x91.setLevel(9);_0x91.panTo(new kakao.maps.LatLng(37.5665,126.9780));}
-        _0x3c();
+        _0x3c(false);
     };
-    _0x1c9a._0x8b2c=function(f,el){_0x96=f;document.querySelectorAll('.btn-filter').forEach(function(b){b.classList.remove('active');});el.classList.add('active');_0x3c();};
+    _0x1c9a._0x8b2c=function(f,el){_0x96=f;document.querySelectorAll('.btn-filter').forEach(function(b){b.classList.remove('active');});el.classList.add('active');_0x3c(false);};
     function _0x3d(a){return a?a.replace(/\(.*?\)/g,'').replace(/외\s*\d+.*$/g,'').replace(/일원.*$/g,'').replace(/[\d\-]+BL.*$/gi,'').replace(/BL.*$/gi,'').replace(/로트.*$/gi,'').trim():"";}
     function _0x3e(l){var r=[],c="",q=false;for(var i=0;i<l.length;i++){var ch=l[i];if(ch==='"')q=!q;else if(ch===','&&!q){r.push(c.trim());c="";}else c+=ch;}r.push(c.trim());return r;}
 
@@ -264,7 +269,7 @@
         _0x2a.forEach(function(x){if(!ex.has(_0x31(x.HOUSE_NM)))it.unshift(x);});
         _0x3a(it);
         var vl=it.filter(function(p){return!!p.HSSPLY_ADRES;});_0x97=vl.length;
-        document.getElementById('status').innerText="전국 맞춤형 "+_0x97+"건 로드 중...";
+        document.getElementById('status').innerText="부산·경남 우선 로드 중...";
         vl.forEach(function(p,ix){
             var nm=p.HOUSE_NM||"아파트명 미제공",ad=p.HSSPLY_ADRES,ce=p.CNTRCT_CNCLS_ENDDE||"",st=_0x38(ce);
             var bt=st==='apt'?"실시간 청약":st==='fcfs'?"선착순 계약 (잔여·마감 확인)":st==='old'?"입주완료 · 분양권/전월세 상담":"⚠️ 1년 경과·분양마감 확인필요";
@@ -276,13 +281,13 @@
                     if(co){
                         var sh=_0x36(ad,_0x95)&&_0x3b(st,_0x96),mk=new kakao.maps.Marker({map:sh?_0x91:null,position:co}),ct=document.createElement('div');
                         ct.className='info-box';ct.innerHTML='<span class="badge '+bc+'">'+bt+'</span><div class="title">'+nm+'</div><div class="desc">'+ds+'</div><div class="click-hint">클릭 시 체크포인트·상담 👆</div>';
-                        ct.onclick=function(){_0x41(p,st);};kakao.maps.addListener(mk,'click',function(){_0x41(p,st);});
+                        ct.onclick=function(){_0x41(p,st);};kakao.maps.event.addListener(mk,'click',function(){_0x41(p,st);});
                         var ov=new kakao.maps.CustomOverlay({map:sh?_0x91:null,position:co,content:ct,yAnchor:1.3});
                         _0x94.push({marker:mk,overlay:ov,statusType:st,addr:ad});
                     }
-                    _0x3c();
+                    _0x3c(true);
                 });
-            },ix*75);
+            },ix*35);
         });
     }).catch(function(){document.getElementById('status').innerText="API 연결 대기 중";});
 })(window);
