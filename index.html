@@ -264,7 +264,7 @@
     }
 
     var _0x45=_0x3b8e[2]+encodeURIComponent(_0x3b8e[1]);
-    var _0x46=fetch(_0x3b8e[0]+"&t="+Date.now(),{cache:"no-store"}).then(function(r){return r.text();}).then(function(tx){
+    var _0x46=fetch(_0x3b8e[0]).then(function(r){return r.text();}).then(function(tx){
         var ln=tx.split(/\r?\n/);
         for(var i=1;i<ln.length;i++){
             if(!ln[i].trim())continue;var c=_0x3e(ln[i]);
