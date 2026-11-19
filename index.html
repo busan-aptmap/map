@@ -29,7 +29,7 @@
 
 <div class="status-wrap">
     <div id="status" class="status-badge">실시간 분양 데이터 수집 중...</div>
-    <div class="update-badge">최종 업데이트: 2026.11.16</div>
+    <div class="update-badge">최종 업데이트: 2026.11.19</div>
 </div>
 
 <div class="brand-watermark">
@@ -278,7 +278,7 @@
             if(c.length>=6){
                 var kw=(c[0]||"").trim(),st=(c[5]||"").trim().toUpperCase(),la=parseFloat((c[7]||"").trim()),lo=parseFloat((c[8]||"").trim()),im=(c[11]||"").trim();
                 if(kw&&st==="ON"){
-                    _0x9b.push({keyword:kw,role:(c[1]||"").trim(),managerName:(c[2]||"").trim(),phone:(c[3]||"").trim(),kakao:(c[4]||"").trim(),endDate:(c[6]||"").trim(),customLat:!isNaN(la)?la:null,customLng:!isNaN(lo)?lo:null,staffPhoto:(c[9]||"").trim(),salesCondition:(c[10]||"").trim(),siteImages:im?im.split("|").map(function(s){return s.trim();}).filter(Boolean):[],siteYoutube:(c[12]||"").trim(),realtyIntro:(c[13]||"").trim(),listings:[(c[14]||"").trim(),(c[15]||"").trim(),(c[16]||"").trim(),(c[17]||"").trim()].filter(Boolean)});
+                    _0x9b.push({keyword:kw,role:(c[1]||"").trim(),managerName:(c[2]||"").trim(),phone:(c[3]||"").trim(),kakao:(c[4]||"").trim(),endDate:(c[6]||"").trim(),customLat:!isNaN(la)?la:null,customLng:!isNaN(lo)?lo:null,staffPhoto:(c[9]||"").trim(),salesCondition:(c[10]||"").trim(),siteImages:im?im.split("|").map(function(s){return s.trim();}).filter(Boolean):[],siteYoutube:(c[12]||"").trim(),realtyIntro:(c[13]||"").trim(),listings:[(c[14]||"").trim(),(c[15]||"").trim(),(c[16]||"").trim(),(c[17]||"").trim()].filter(Boolean),customAddr:(c[18]||"").trim()});
                 }
             }
         }
@@ -291,7 +291,20 @@
         var sl=uq.filter(function(p){return!_0x36(p.HSSPLY_ADRES,'busan')&&_0x36(p.HSSPLY_ADRES,'seoul');}).sort(function(a,b){return(parseInt(b.TOT_SUPLY_HSHLDCO,10)||0)-(parseInt(a.TOT_SUPLY_HSHLDCO,10)||0);}).slice(0,80);
         var et=uq.filter(function(p){return!_0x36(p.HSSPLY_ADRES,'busan')&&!_0x36(p.HSSPLY_ADRES,'seoul');}).sort(function(a,b){return(parseInt(b.TOT_SUPLY_HSHLDCO,10)||0)-(parseInt(a.TOT_SUPLY_HSHLDCO,10)||0);}).slice(0,40);
         var it=bg.concat(sl).concat(et),ex=new Set(it.map(function(i){return _0x31(i.HOUSE_NM);}));
-        _0x2a.forEach(function(x){if(!ex.has(_0x31(x.HOUSE_NM)))it.unshift(x);});
+        _0x2a.forEach(function(x){if(!ex.has(_0x31(x.HOUSE_NM))){it.unshift(x);ex.add(_0x31(x.HOUSE_NM));}});
+        var td=new Date().toISOString().slice(0,10);
+        _0x9b.forEach(function(m){
+            var ne=(m.endDate||"").replace(/\./g,"-").replace(/\s+/g,"");
+            if(ne&&ne.length>=10&&ne<td)return;
+            if(m.customAddr){
+                var ck=_0x31(m.keyword),fd=false;
+                ex.forEach(function(nm){if(nm.indexOf(ck)!==-1)fd=true;});
+                if(!fd){
+                    it.unshift({HOUSE_NM:m.keyword,HSSPLY_ADRES:m.customAddr,TOT_SUPLY_HSHLDCO:"-",RCEPT_BGNDE:"-",RCEPT_ENDDE:"-",PRZWNER_PRESN_DATE:"-",CNTRCT_CNCLS_BGNDE:"-",CNTRCT_CNCLS_ENDDE:"2020-01-01",BSNS_MBY_NM:"전담 부동산 공식 등록 단지"});
+                    ex.add(ck);
+                }
+            }
+        });
         _0x3a(it);
         var vl=it.filter(function(p){return!!p.HSSPLY_ADRES;});_0x97=vl.length;
         document.getElementById('status').innerText="부산·경남 우선 로드 중...";
@@ -299,7 +312,7 @@
             var nm=p.HOUSE_NM||"아파트명 미제공",ad=p.HSSPLY_ADRES,ce=p.CNTRCT_CNCLS_ENDDE||"",st=_0x38(ce);
             var bt=st==='apt'?"실시간 청약":st==='fcfs'?"선착순 계약 (잔여·마감 확인)":st==='old'?"입주완료 · 분양권/전월세 상담":"⚠️ 1년 경과·분양마감 확인필요";
             var bc=st==='apt'?"badge-apt":st==='fcfs'?"badge-fcfs":st==='old'?"badge-old":"badge-check";
-            var ds=st==='apt'?("접수: "+(p.RCEPT_BGNDE||"-")+" ~ "+(p.RCEPT_ENDDE||"-")):("정당계약 마감 ("+ce+")");
+            var ds=st==='apt'?("접수: "+(p.RCEPT_BGNDE||"-")+" ~ "+(p.RCEPT_ENDDE||"-")):st==='old'?"입주완료 · 전담 부동산 매물 상담":("정당계약 마감 ("+ce+")");
             setTimeout(function(){
                 _0x44(nm,ad,function(co){
                     _0x98++;
