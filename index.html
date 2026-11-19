@@ -162,9 +162,27 @@
     };
     _0x1c9a._0x8b2c=function(f,el){_0x96=f;document.querySelectorAll('.btn-filter').forEach(function(b){b.classList.remove('active');});el.classList.add('active');_0x3c(false);};
     function _0x3d(a){return a?a.replace(/\(.*?\)/g,'').replace(/외\s*\d+.*$/g,'').replace(/일원.*$/g,'').replace(/[\d\-]+BL.*$/gi,'').replace(/BL.*$/gi,'').replace(/로트.*$/gi,'').trim():"";}
-    function _0x3e(l){var r=[],c="",q=false;for(var i=0;i<l.length;i++){var ch=l[i];if(ch==='"')q=!q;else if(ch===','&&!q){r.push(c.trim());c="";}else c+=ch;}r.push(c.trim());return r;}
+    function _0x3e(l){
+        var clean=l.replace(/^\uFEFF/,'').replace(/[\u200B-\u200D]/g,'');
+        var r=[],c="",q=false;
+        for(var i=0;i<clean.length;i++){var ch=clean[i];if(ch==='"')q=!q;else if(ch===','&&!q){r.push(c.trim());c="";}else c+=ch;}
+        r.push(c.trim());return r;
+    }
 
-    function _0x3f(nm){var td=new Date().toISOString().slice(0,10);for(var i=0;i<_0x9b.length;i++){var m=_0x9b[i];if(nm.indexOf(m.keyword)!==-1){if(m.endDate&&m.endDate<td)continue;return m;}}return null;}
+    function _0x3f(nm){
+        var td=new Date().toISOString().slice(0,10);
+        var cleanNm=(nm||"").replace(/\s+/g,"");
+        for(var i=0;i<_0x9b.length;i++){
+            var m=_0x9b[i];
+            var cleanKw=(m.keyword||"").replace(/\s+/g,"");
+            if(cleanKw && cleanNm.indexOf(cleanKw)!==-1){
+                var normEnd=(m.endDate||"").replace(/\./g,"-").replace(/\s+/g,"");
+                if(normEnd && normEnd.length>=10 && normEnd<td)continue;
+                return m;
+            }
+        }
+        return null;
+    }
     function _0x40(u){if(!u)return"";var m=u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);return m?("https://www.youtube.com/embed/"+m[1]):"";}
 
     _0x1c9a._0x7c1a=function(){
@@ -246,7 +264,7 @@
     }
 
     var _0x45=_0x3b8e[2]+encodeURIComponent(_0x3b8e[1]);
-    var _0x46=fetch(_0x3b8e[0]).then(function(r){return r.text();}).then(function(tx){
+    var _0x46=fetch(_0x3b8e[0]+"&t="+Date.now(),{cache:"no-store"}).then(function(r){return r.text();}).then(function(tx){
         var ln=tx.split(/\r?\n/);
         for(var i=1;i<ln.length;i++){
             if(!ln[i].trim())continue;var c=_0x3e(ln[i]);
@@ -257,7 +275,8 @@
                 }
             }
         }
-    }).catch(function(){});
+        console.log("[지오홈] 시트 연동 완료:", _0x9b.length, _0x9b);
+    }).catch(function(e){console.error("[지오홈] 시트 로드 실패:", e);});
 
     Promise.all([_0x46,fetch(_0x45+"&page=1").then(function(r){return r.json();}),fetch(_0x45+"&page=2").then(function(r){return r.json();}),fetch(_0x45+"&page=3").then(function(r){return r.json();})]).then(function(rs){
         var rw=[];for(var idx=1;idx<rs.length;idx++){if(rs[idx]&&rs[idx].data)rw=rw.concat(rs[idx].data);}
