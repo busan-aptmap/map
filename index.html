@@ -123,7 +123,7 @@
 (function(_0x1c9a){
     var _0x5f2d = function(_0x7e){ return decodeURIComponent(escape(atob(_0x7e))); };
     var _0x3b8e = [
-        "https://docs.google.com/spreadsheets/d/1TAcUqw-P25y1dRMOSLhnEE4ncj4pBnIsCu6m2ya-FTY/gviz/tq?tqx=out:csv&gid=0",
+        "여기에_방금_복사한_웹앱_URL_붙여넣기?mode=data",
         _0x5f2d("OTM1ZGU1YzIzNTk4YTkxNGRkOTcxNDlhMGI5MjYxNGRiN2Y0ZGUyOGQ5OTFkNjU4ZDU4ZGZhY2EwM2JhZDNhNw=="),
         _0x5f2d("aHR0cHM6Ly9hcGkub2RjbG91ZC5rci9hcGkvQXBwbHlob21lSW5mb0RldGFpbFN2Yy92MS9nZXRBUFRMdHRvdFBibGFuY0RldGFpbD9wZXJQYWdlPTEwMDAmc2VydmljZUtleT0="),
         _0x5f2d("aHR0cHM6Ly9vcGVuLmtha2FvLmNvbS9vL3NzOW4zclhp"),
@@ -425,19 +425,6 @@
     };
     _0x1c9a._0x8b2c=function(f,el){_0x96=f;document.querySelectorAll('.btn-filter').forEach(function(b){b.classList.remove('active');});el.classList.add('active');_0x3c(false);};
     function _0x3d(a){return a?a.replace(/\(.*?\)/g,'').replace(/외\s*\d+.*$/g,'').replace(/일원.*$/g,'').replace(/[\d\-]+BL.*$/gi,'').replace(/BL.*$/gi,'').replace(/로트.*$/gi,'').trim():"";}
-    function _0x3e(l){
-        var clean=l.replace(/^\uFEFF/,'').replace(/[\u200B-\u200D]/g,'');
-        var r=[],c="",q=false;
-        for(var i=0;i<clean.length;i++){
-            var ch=clean[i];
-            if(ch==='"'){
-                if(q&&clean[i+1]==='"'){c+='"';i++;}
-                else q=!q;
-            }else if(ch===','&&!q){r.push(c.trim());c="";}
-            else c+=ch;
-        }
-        r.push(c.trim());return r;
-    }
 
     function _0x3f(nm){
         var td=new Date().toISOString().slice(0,10);
@@ -534,15 +521,13 @@
     }
 
     var _0x45=_0x3b8e[2]+encodeURIComponent(_0x3b8e[1]);
-    var _0x46=fetch(_0x3b8e[0]).then(function(r){return r.text();}).then(function(tx){
-        var ln=tx.split(/\r?\n/);
-        for(var i=1;i<ln.length;i++){
-            if(!ln[i].trim())continue;var c=_0x3e(ln[i]);
-            if(c.length>=6){
-                var kw=(c[0]||"").trim(),st=(c[5]||"").trim().toUpperCase(),la=parseFloat((c[7]||"").trim()),lo=parseFloat((c[8]||"").trim()),im=(c[11]||"").trim();
-                if(kw&&st==="ON"){
-                    _0x9b.push({keyword:kw,role:(c[1]||"").trim(),managerName:(c[2]||"").trim(),phone:(c[3]||"").trim(),kakao:(c[4]||"").trim(),endDate:(c[6]||"").trim(),customLat:!isNaN(la)?la:null,customLng:!isNaN(lo)?lo:null,staffPhoto:(c[9]||"").trim(),salesCondition:(c[10]||"").trim(),siteImages:im?im.split("|").map(function(s){return s.trim();}).filter(Boolean):[],siteYoutube:(c[12]||"").trim(),realtyIntro:(c[13]||"").trim(),listings:[(c[14]||"").trim(),(c[15]||"").trim(),(c[16]||"").trim(),(c[17]||"").trim()].filter(Boolean),customAddr:(c[18]||"").trim()});
-                }
+    var _0x46=fetch(_0x3b8e[0]).then(function(r){return r.json();}).then(function(rows){
+        if(!Array.isArray(rows))return;
+        for(var i=0;i<rows.length;i++){
+            var row=rows[i]||{};
+            var kw=String(row['현장키워드']||"").trim(),st=String(row['노출상태']||"").trim().toUpperCase(),la=parseFloat(String(row['위도']||"").trim()),lo=parseFloat(String(row['경도']||"").trim()),im=String(row['현장이미지']||"").trim();
+            if(kw&&st==="ON"){
+                _0x9b.push({keyword:kw,role:String(row['담당구분']||"").trim(),managerName:String(row['담당자명']||"").trim(),phone:String(row['전화번호']||"").trim(),kakao:String(row['카톡링크']||"").trim(),endDate:String(row['종료일']||"").trim(),customLat:!isNaN(la)?la:null,customLng:!isNaN(lo)?lo:null,staffPhoto:String(row['담당자사진']||"").trim(),salesCondition:String(row['분양조건']||"").trim(),siteImages:im?im.split("|").map(function(s){return s.trim();}).filter(Boolean):[],siteYoutube:String(row['동영상링크']||"").trim(),realtyIntro:String(row['부동산소개']||"").trim(),listings:[String(row['주력매물1']||"").trim(),String(row['주력매물2']||"").trim(),String(row['주력매물3']||"").trim(),String(row['주력매물4']||"").trim()].filter(Boolean),customAddr:String(row['단지주소']||"").trim()});
             }
         }
     }).catch(function(){});
