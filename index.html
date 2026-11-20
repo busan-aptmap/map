@@ -29,7 +29,7 @@
         .gu-chips::-webkit-scrollbar{display:none}
         .gu-chip{border:1px solid #e2e8f0;background:#f8fafc;color:#475569;font-size:11px;font-weight:600;padding:3px 7px;border-radius:12px;cursor:pointer;white-space:nowrap;transition:all .15s ease}
         .gu-chip:hover,.gu-chip.active{background:#eff6ff;color:#1d4ed8;border-color:#93c5fd;font-weight:700}
-        .search-results-dropdown{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border:1px solid #cbd5e1;border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,.2);max-height:220px;overflow-y:auto;z-index:200}
+        .search-results-dropdown{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border:1px solid #cbd5e1;border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,.2);max-height:240px;overflow-y:auto;z-index:200}
         .search-result-item{padding:9px 11px;border-bottom:1px solid #f1f5f9;cursor:pointer;display:flex;flex-direction:column;gap:2px}
         .search-result-item:last-child{border-bottom:none}
         .search-result-item:hover{background:#f8fafc}
@@ -68,23 +68,23 @@
     </div>
     <div class="search-panel">
         <div class="search-input-wrap">
-            <input type="text" id="mapSearchInput" class="search-input" placeholder="구·동 또는 단지명 검색 (예: 해운대구, 자이)" onkeydown="if(event.key==='Enter')_0x5a10()" oninput="_0x5a11()">
+            <input type="text" id="mapSearchInput" class="search-input" placeholder="지역(예: 대전 서구) 또는 단지명 검색" onkeydown="if(event.key==='Enter')_0x5a10()" oninput="_0x5a11()">
             <button type="button" id="searchClearBtn" class="btn-search-clear" onclick="_0x5a12()">초기화</button>
             <button type="button" class="btn-search" onclick="_0x5a10()">검색</button>
         </div>
         <div class="gu-chips" id="guChipsWrap">
-            <button type="button" class="gu-chip" onclick="_0x5a13('해운대구', this)">해운대구</button>
-            <button type="button" class="gu-chip" onclick="_0x5a13('강서구', this)">강서구</button>
-            <button type="button" class="gu-chip" onclick="_0x5a13('연제구', this)">연제구</button>
-            <button type="button" class="gu-chip" onclick="_0x5a13('동래구', this)">동래구</button>
-            <button type="button" class="gu-chip" onclick="_0x5a13('부산진구', this)">부산진구</button>
-            <button type="button" class="gu-chip" onclick="_0x5a13('남구', this)">남구</button>
-            <button type="button" class="gu-chip" onclick="_0x5a13('수영구', this)">수영구</button>
-            <button type="button" class="gu-chip" onclick="_0x5a13('사하구', this)">사하구</button>
-            <button type="button" class="gu-chip" onclick="_0x5a13('북구', this)">북구</button>
-            <button type="button" class="gu-chip" onclick="_0x5a13('기장군', this)">기장군</button>
-            <button type="button" class="gu-chip" onclick="_0x5a13('김해시', this)">김해시</button>
-            <button type="button" class="gu-chip" onclick="_0x5a13('양산시', this)">양산시</button>
+            <button type="button" class="gu-chip" onclick="_0x5a13('해운대구', '부산광역시 해운대구')">해운대구</button>
+            <button type="button" class="gu-chip" onclick="_0x5a13('강서구', '부산광역시 강서구')">강서구</button>
+            <button type="button" class="gu-chip" onclick="_0x5a13('연제구', '부산광역시 연제구')">연제구</button>
+            <button type="button" class="gu-chip" onclick="_0x5a13('동래구', '부산광역시 동래구')">동래구</button>
+            <button type="button" class="gu-chip" onclick="_0x5a13('부산진구', '부산광역시 부산진구')">부산진구</button>
+            <button type="button" class="gu-chip" onclick="_0x5a13('남구', '부산광역시 남구')">남구</button>
+            <button type="button" class="gu-chip" onclick="_0x5a13('수영구', '부산광역시 수영구')">수영구</button>
+            <button type="button" class="gu-chip" onclick="_0x5a13('사하구', '부산광역시 사하구')">사하구</button>
+            <button type="button" class="gu-chip" onclick="_0x5a13('북구', '부산광역시 북구')">북구</button>
+            <button type="button" class="gu-chip" onclick="_0x5a13('기장군', '부산광역시 기장군')">기장군</button>
+            <button type="button" class="gu-chip" onclick="_0x5a13('김해시', '경상남도 김해시')">김해시</button>
+            <button type="button" class="gu-chip" onclick="_0x5a13('양산시', '경상남도 양산시')">양산시</button>
         </div>
         <div id="searchResultsDropdown" class="search-results-dropdown"></div>
     </div>
@@ -136,29 +136,39 @@
     var _0x93 = new kakao.maps.services.Places();
     var _0x94 = [], _0x95 = 'busan', _0x96 = 'all', _0x97 = 0, _0x98 = 0, _0x99 = null, _0x9a = null, _0x9b = [], _0x9c = "";
 
-    var _0x2d = {
-        "중구":{x:35.1066,y:129.0323,q:"부산광역시 중구"},
-        "서구":{x:35.0979,y:129.0242,q:"부산광역시 서구"},
-        "동구":{x:35.1293,y:129.0455,q:"부산광역시 동구"},
-        "영도구":{x:35.0912,y:129.0679,q:"부산광역시 영도구"},
-        "부산진구":{x:35.1631,y:129.0532,q:"부산광역시 부산진구"},
-        "동래구":{x:35.2048,y:129.0837,q:"부산광역시 동래구"},
-        "남구":{x:35.1365,y:129.0843,q:"부산광역시 남구"},
-        "북구":{x:35.1972,y:128.9903,q:"부산광역시 북구"},
-        "해운대구":{x:35.1631,y:129.1636,q:"부산광역시 해운대구"},
-        "사하구":{x:35.1045,y:128.9748,q:"부산광역시 사하구"},
-        "금정구":{x:35.2428,y:129.0921,q:"부산광역시 금정구"},
-        "강서구":{x:35.2122,y:128.9806,q:"부산광역시 강서구"},
-        "연제구":{x:35.1763,y:129.0798,q:"부산광역시 연제구"},
-        "수영구":{x:35.1456,y:129.1131,q:"부산광역시 수영구"},
-        "사상구":{x:35.1526,y:128.9912,q:"부산광역시 사상구"},
-        "기장군":{x:35.2445,y:129.2222,q:"부산광역시 기장군"},
-        "김해시":{x:35.2285,y:128.8894,q:"경상남도 김해시"},
-        "양산시":{x:35.3350,y:129.0372,q:"경상남도 양산시"},
-        "창원시":{x:35.2279,y:128.6818,q:"경상남도 창원시"},
-        "거제시":{x:34.8806,y:128.6211,q:"경상남도 거제시"},
-        "울산":{x:35.5384,y:129.3114,q:"울산광역시"}
-    };
+    var _0x2d = [
+        {label:"부산 해운대구",q:"부산광역시 해운대구",x:35.1631,y:129.1636},
+        {label:"부산 강서구",q:"부산광역시 강서구",x:35.2122,y:128.9806},
+        {label:"부산 연제구",q:"부산광역시 연제구",x:35.1763,y:129.0798},
+        {label:"부산 동래구",q:"부산광역시 동래구",x:35.2048,y:129.0837},
+        {label:"부산 부산진구",q:"부산광역시 부산진구",x:35.1631,y:129.0532},
+        {label:"부산 남구",q:"부산광역시 남구",x:35.1365,y:129.0843},
+        {label:"부산 수영구",q:"부산광역시 수영구",x:35.1456,y:129.1131},
+        {label:"부산 사하구",q:"부산광역시 사하구",x:35.1045,y:128.9748},
+        {label:"부산 북구",q:"부산광역시 북구",x:35.1972,y:128.9903},
+        {label:"부산 금정구",q:"부산광역시 금정구",x:35.2428,y:129.0921},
+        {label:"부산 사상구",q:"부산광역시 사상구",x:35.1526,y:128.9912},
+        {label:"부산 서구",q:"부산광역시 서구",x:35.0979,y:129.0242},
+        {label:"부산 동구",q:"부산광역시 동구",x:35.1293,y:129.0455},
+        {label:"부산 중구",q:"부산광역시 중구",x:35.1066,y:129.0323},
+        {label:"부산 영도구",q:"부산광역시 영도구",x:35.0912,y:129.0679},
+        {label:"부산 기장군",q:"부산광역시 기장군",x:35.2445,y:129.2222},
+        {label:"경남 김해시",q:"경상남도 김해시",x:35.2285,y:128.8894},
+        {label:"경남 양산시",q:"경상남도 양산시",x:35.3350,y:129.0372},
+        {label:"경남 창원시",q:"경상남도 창원시",x:35.2279,y:128.6818},
+        {label:"경남 거제시",q:"경상남도 거제시",x:34.8806,y:128.6211},
+        {label:"서울 강서구",q:"서울특별시 강서구",x:37.5509,y:126.8495},
+        {label:"서울 강남구",q:"서울특별시 강남구",x:37.5172,y:127.0473},
+        {label:"서울 서초구",q:"서울특별시 서초구",x:37.4837,y:127.0324},
+        {label:"서울 송파구",q:"서울특별시 송파구",x:37.5145,y:127.1059},
+        {label:"인천 서구",q:"인천광역시 서구",x:37.5454,y:126.6760},
+        {label:"인천 연수구",q:"인천광역시 연수구",x:37.4102,y:126.6783},
+        {label:"대전 서구",q:"대전광역시 서구",x:36.3554,y:127.3838},
+        {label:"대전 유성구",q:"대전광역시 유성구",x:36.3622,y:127.3565},
+        {label:"대구 수성구",q:"대구광역시 수성구",x:35.8581,y:128.6306},
+        {label:"대구 서구",q:"대구광역시 서구",x:35.8718,y:128.5591},
+        {label:"광주 서구",q:"광주광역시 서구",x:35.1520,y:126.8901}
+    ];
 
     var _0x2a = [
         {HOUSE_NM:"에코델타시티 중흥S-클래스 에듀리버",HSSPLY_ADRES:"부산광역시 강서구 강동동 일원 (에코델타시티 4BL)",TOT_SUPLY_HSHLDCO:"728",RCEPT_BGNDE:"2025-05-19",RCEPT_ENDDE:"2025-05-21",PRZWNER_PRESN_DATE:"2025-05-28",CNTRCT_CNCLS_BGNDE:"2025-06-09",CNTRCT_CNCLS_ENDDE:"2025-06-11",BSNS_MBY_NM:"중흥토건(주)"},
@@ -245,31 +255,27 @@
         document.getElementById('status').innerText=lb+" 표시: "+cnt+"곳"+(_0x98<_0x97?" (로딩 중...)":"");
     }
 
-    function _0x5a14(guName){
-        var d=_0x2d[guName];
+    function _0x5a15(item){
         document.querySelectorAll('.gu-chip').forEach(function(c){
-            c.classList.toggle('active', c.innerText.trim()===guName);
+            c.classList.toggle('active', item.q.indexOf("부산")===0 && item.q.indexOf(c.innerText.trim())!==-1);
         });
-        if(d){
-            _0x9c=guName;
-            if(_0x95!=='national'&&!_0x36(d.q,_0x95)){
-                _0x95='national';
-                document.querySelectorAll('.btn-region').forEach(function(b,idx){b.classList.toggle('active',idx===1);});
-            }
-            _0x91.setLevel(6);
-            _0x91.panTo(new kakao.maps.LatLng(d.x,d.y));
-            _0x3c(false);
-            return true;
+        _0x9c=item.q;
+        if(_0x95!=='national'&&!_0x36(item.q,_0x95)){
+            _0x95='national';
+            document.querySelectorAll('.btn-region').forEach(function(b,idx){b.classList.toggle('active',idx===1);});
         }
-        return false;
+        _0x91.setLevel(6);
+        _0x91.panTo(new kakao.maps.LatLng(item.x,item.y));
+        _0x3c(false);
     }
 
-    _0x1c9a._0x5a13=function(guName,el){
+    _0x1c9a._0x5a13=function(chipText,fullQ){
         var inp=document.getElementById('mapSearchInput'),clr=document.getElementById('searchClearBtn'),dd=document.getElementById('searchResultsDropdown');
-        if(inp)inp.value=guName;
+        if(inp)inp.value=fullQ;
         if(clr)clr.style.display='inline-block';
         if(dd)dd.style.display='none';
-        _0x5a14(guName);
+        var found=_0x2d.find(function(d){return d.q===fullQ;});
+        if(found)_0x5a15(found);
     };
 
     _0x1c9a._0x5a12=function(){
@@ -289,9 +295,10 @@
         if(clr)clr.style.display=q?'inline-block':'none';
         if(!q){dd.style.display='none';_0x9c="";document.querySelectorAll('.gu-chip').forEach(function(c){c.classList.remove('active');});_0x3c(false);return;}
         var cq=_0x31(q),matches=[];
-        for(var k in _0x2d){
-            if(k.indexOf(q)!==-1||q.indexOf(k)!==-1){
-                matches.push({type:'gu',name:k,sub:_0x2d[k].q+" 중심 이동"});
+        for(var j=0;j<_0x2d.length;j++){
+            var d=_0x2d[j];
+            if(_0x31(d.label).indexOf(cq)!==-1||_0x31(d.q).indexOf(cq)!==-1){
+                matches.push({type:'gu',geo:d,name:d.label,sub:d.q+" 중심 이동"});
             }
         }
         for(var i=0;i<_0x94.length;i++){
@@ -301,11 +308,11 @@
             }
         }
         if(matches.length===0){
-            dd.innerHTML='<div class="search-result-item"><div class="sr-sub">일치하는 현장이나 구가 없습니다.</div></div>';
+            dd.innerHTML='<div class="search-result-item"><div class="sr-sub">엔터 또는 [검색]을 누르면 전국 주소로 이동합니다.</div></div>';
             dd.style.display='block';
             return;
         }
-        dd.innerHTML=matches.slice(0,12).map(function(m,idx){
+        dd.innerHTML=matches.slice(0,15).map(function(m,idx){
             var tag=m.type==='gu'?'📍 지역이동 · ':'🏢 현장 · ';
             return '<div class="search-result-item" data-idx="'+idx+'"><div class="sr-title">'+tag+m.name+'</div><div class="sr-sub">'+m.sub+'</div></div>';
         }).join("");
@@ -314,8 +321,8 @@
                 var sel=matches[idx];
                 dd.style.display='none';
                 inp.value=sel.name;
-                if(sel.type==='gu'){
-                    _0x5a14(sel.name);
+                if(sel.type==='gu'&&sel.geo){
+                    _0x5a15(sel.geo);
                 }else if(sel.item){
                     _0x9c="";
                     document.querySelectorAll('.gu-chip').forEach(function(c){c.classList.remove('active');});
@@ -341,14 +348,25 @@
         if(!inp)return;
         var q=inp.value.trim();
         if(!q){_0x1c9a._0x5a12();return;}
-        if(dd)dd.style.display='none';
-        for(var k in _0x2d){
-            if(k===q||k.indexOf(q)!==-1){
-                _0x5a14(k);
-                return;
-            }
+        var cq=_0x31(q);
+        var exactGu=_0x2d.filter(function(d){return _0x31(d.label)===cq||_0x31(d.q)===cq;});
+        if(exactGu.length===1){
+            if(dd)dd.style.display='none';
+            _0x5a15(exactGu[0]);
+            return;
         }
-        var cq=_0x31(q),found=null;
+        var partialGu=_0x2d.filter(function(d){return _0x31(d.label).indexOf(cq)!==-1||_0x31(d.q).indexOf(cq)!==-1;});
+        if(partialGu.length>1){
+            _0x1c9a._0x5a11();
+            return;
+        }
+        if(partialGu.length===1){
+            if(dd)dd.style.display='none';
+            _0x5a15(partialGu[0]);
+            return;
+        }
+        if(dd)dd.style.display='none';
+        var found=null;
         for(var i=0;i<_0x94.length;i++){
             if(_0x31(_0x94[i].name).indexOf(cq)!==-1){found=_0x94[i];break;}
         }
@@ -368,19 +386,24 @@
             _0x91.panTo(found.coord);
             return;
         }
+        function _0x5a16(latLng,addrLabel){
+            _0x9c=addrLabel||q;
+            document.querySelectorAll('.gu-chip').forEach(function(c){c.classList.remove('active');});
+            if(_0x95!=='national'&&!_0x36(_0x9c,_0x95)){
+                _0x95='national';
+                document.querySelectorAll('.btn-region').forEach(function(b,bi){b.classList.toggle('active',bi===1);});
+            }
+            _0x91.setLevel(6);
+            _0x91.panTo(latLng);
+            _0x3c(false);
+        }
         _0x92.addressSearch(q,function(rs,st){
             if(st===kakao.maps.services.Status.OK){
-                _0x9c=q;
-                _0x91.setLevel(6);
-                _0x91.panTo(new kakao.maps.LatLng(rs[0].y,rs[0].x));
-                _0x3c(false);
+                _0x5a16(new kakao.maps.LatLng(rs[0].y,rs[0].x),rs[0].address_name||q);
             }else{
                 _0x93.keywordSearch(q,function(dt,ks){
                     if(ks===kakao.maps.services.Status.OK&&dt.length>0){
-                        _0x9c=q;
-                        _0x91.setLevel(6);
-                        _0x91.panTo(new kakao.maps.LatLng(dt[0].y,dt[0].x));
-                        _0x3c(false);
+                        _0x5a16(new kakao.maps.LatLng(dt[0].y,dt[0].x),dt[0].address_name||q);
                     }
                 });
             }
